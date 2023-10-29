@@ -1,8 +1,11 @@
-#include <Adafruit_ILI9341.h>
+
 #include <Arduino.h>
 #include <SPI.h>
+#include <TFT_eSPI.h>
 #include <WiFi.h>
 #include <lvgl.h>
+
+TFT_eSPI tft = TFT_eSPI();
 
 void turnOffLED(int led_pin) {
   pinMode(led_pin, OUTPUT);
@@ -14,27 +17,6 @@ void turnOffAllLEDs() {
   turnOffLED(16);
   turnOffLED(17);
 }
-
-#define TFT_DC 2
-#define TFT_RST -1
-
-// ESP32 HSPI is 14=CLK, 13=MOSI (SDA), 15=CS, 12=MISO (Q)
-
-#define TFT_CS 15
-#define TFT_SCK 14
-#define TFT_MISO 12
-#define TFT_MOSI 13
-
-// Use hardware SPI
-// Adafruit_ILI9341 tft = Adafruit_ILI9341(_cs, _dc, _rst);
-
-// Use hardware SPI on a specific SPI bus
-SPIClass SPI2 = SPIClass(HSPI);
-Adafruit_ILI9341 tft = Adafruit_ILI9341(&SPI2, TFT_DC, TFT_CS, TFT_RST);
-
-// If using software SPI change pins as desired
-// Adafruit_ILI9341 tft =
-//     Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST);
 
 void my_disp_flush(lv_disp_drv_t* disp_drv,
                    const lv_area_t* area,
@@ -67,6 +49,8 @@ void initLVGL() {
   ledcAttachPin(27, 0);
   ledcSetup(0, 5000, 8);
   ledcWrite(0, 255);  // backlight on
+
+  tft.init();
 
   Serial.println("here a1");
   tft.begin();
