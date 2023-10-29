@@ -1,7 +1,10 @@
 #include <Arduino.h>
+#include <ArduinoOTA.h>
+#include <TAMC_GT911.h>
+#include <TFT_eSPI.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
-#include <ArduinoOTA.h>
+#include <lvgl.h>
 
 #define LED_PIN_RED 4
 #define LED_PIN_GREEN 16
@@ -9,23 +12,6 @@
 
 #define BL_LEDC_PIN 27
 #define BL_LEDC_CHANNEL 0
-
-/*Using LVGL with Arduino requires some extra steps:
- *Be sure to read the docs here:
- *https://docs.lvgl.io/master/get-started/platforms/arduino.html  */
-
-#include <TFT_eSPI.h>
-#include <lvgl.h>
-
-/*To use the built-in examples and demos of LVGL uncomment the includes below
- *respectively. You also need to copy `lvgl/examples` to `lvgl/src/examples`.
- *Similarly for the demos `lvgl/demos` to `lvgl/src/demos`. Note that the
- *`lv_examples` library is for LVGL v7 and you shouldn't install it for this
- *version (since LVGL v8) as the examples and demos are now part of the main
- *LVGL library. */
-
-// #include <examples/lv_examples.h>
-#include <demos/lv_demos.h>
 
 /*Change to your screen resolution*/
 static const uint16_t screenWidth = 480;
@@ -35,6 +21,7 @@ static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * screenHeight / 10];
 
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
+TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 WiFiManager wifiManager;
 
 #if LV_USE_LOG != 0
@@ -42,14 +29,13 @@ WiFiManager wifiManager;
 // void my_print( lv_log_level_t level, const char * buf )
 void my_print(const char* buf) {
   // LV_UNUSED(level);
+  Serial.println(buf);
   Serial.flush();
 }
 #endif
 
 /* Display flushing */
-void my_disp_flush(lv_disp_drv_t* disp_drv,
-                   const lv_area_t* area,
-                   lv_color_t* color_p) {
+void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
 
@@ -61,30 +47,36 @@ void my_disp_flush(lv_disp_drv_t* disp_drv,
   lv_disp_flush_ready(disp_drv);
 }
 
+// touch read:
+// tp.read();
+// if (tp.isTouched) {
+//   for (int i = 0; i < tp.touches; i++) {
+//     Serial.print("Touch ");
+//     Serial.print(i + 1);
+//     Serial.print(": ");
+//     ;
+//     Serial.print("  x: ");
+//     Serial.print(tp.points[i].x);
+//     Serial.print("  y: ");
+//     Serial.print(tp.points[i].y);
+//     Serial.print("  size: ");
+//     Serial.println(tp.points[i].size);
+//     Serial.println(' ');
+//   }
+// }
+
 /*Read the touchpad*/
 void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
-  uint16_t touchX, touchY;
+  tp.read();
+  bool touched = tp.isTouched && tp.touches == 1;  // allowing only single touch here
+  if (!touched) {
+    data->state = LV_INDEV_STATE_REL;
+  } else {
+    data->state = LV_INDEV_STATE_PR;
 
-  // bool touched = tft.getTouch( &touchX, &touchY, 600 );
-
-  // if( !touched )
-  // {
-  data->state = LV_INDEV_STATE_REL;
-  // }
-  // else
-  // {
-  //     data->state = LV_INDEV_STATE_PR;
-
-  //     /*Set the coordinates*/
-  //     data->point.x = touchX;
-  //     data->point.y = touchY;
-
-  //     Serial.print( "Data x " );
-  //     Serial.println( touchX );
-
-  //     Serial.print( "Data y " );
-  //     Serial.println( touchY );
-  // }
+    data->point.x = tp.points[0].x;
+    data->point.y = tp.points[0].y;
+  }
 }
 
 void turnOffLED(int led_pin) {
@@ -118,12 +110,14 @@ void initDisplay() {
   turnOffAllLEDs();
   initBacklight();
   setBacklight(255);
+
+  tp.begin();
+  tp.setRotation(ROTATION_RIGHT);
 }
 
 void initLVGL() {
   String LVGL_Arduino = "Hello Arduino! ";
-  LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() +
-                  "." + lv_version_patch();
+  LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
 
   Serial.println(LVGL_Arduino);
   Serial.println("I am LVGL_Arduino");
@@ -131,8 +125,7 @@ void initLVGL() {
   lv_init();
 
 #if LV_USE_LOG != 0
-  lv_log_register_print_cb(
-      my_print); /* register print function for debugging */
+  lv_log_register_print_cb(my_print); /* register print function for debugging */
 #endif
 
   tft.begin();        /* TFT init */
@@ -175,6 +168,16 @@ void initLVGL() {
   lv_obj_align(label2, LV_ALIGN_CENTER, 0, 50);
 }
 
+static void event_handler(lv_event_t* e) {
+  lv_event_code_t code = lv_event_get_code(e);
+
+  if (code == LV_EVENT_CLICKED) {
+    Serial.println("Clicked");
+  } else if (code == LV_EVENT_VALUE_CHANGED) {
+    Serial.println("Toggled");
+  }
+}
+
 void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
@@ -199,6 +202,15 @@ void setup() {
   Serial.println("OTA ready");
 
   lv_obj_del(label2);
+
+  lv_obj_t* button = lv_btn_create(scr);
+  lv_obj_align(button, LV_ALIGN_CENTER, 0, 130);
+  lv_obj_set_size(button, 100, 50);
+  lv_obj_add_event_cb(button, event_handler, LV_EVENT_ALL, NULL);
+
+  lv_obj_t* label3 = lv_label_create(button);
+  lv_label_set_text(label3, "Tlacitko");
+  lv_obj_align(label3, LV_ALIGN_CENTER, 0, 0);
 
   Serial.println("Setup done");
 }
