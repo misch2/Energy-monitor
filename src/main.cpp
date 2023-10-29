@@ -5,6 +5,13 @@
 #include <WiFi.h>
 #include <lvgl.h>
 
+#define LED_PIN_RED 4
+#define LED_PIN_GREEN 16
+#define LED_PIN_BLUE 17
+
+#define BL_LEDC_PIN 27
+#define BL_LEDC_CHANNEL 0
+
 TFT_eSPI tft = TFT_eSPI();
 
 void turnOffLED(int led_pin) {
@@ -13,9 +20,20 @@ void turnOffLED(int led_pin) {
 }
 
 void turnOffAllLEDs() {
-  turnOffLED(4);
-  turnOffLED(16);
-  turnOffLED(17);
+  turnOffLED(LED_PIN_RED);
+  turnOffLED(LED_PIN_GREEN);
+  turnOffLED(LED_PIN_BLUE);
+}
+
+void initBacklight() {
+  // PWM backlight on PIN 27
+  pinMode(BL_LEDC_PIN, OUTPUT);
+  ledcAttachPin(BL_LEDC_PIN, BL_LEDC_CHANNEL);
+  ledcSetup(BL_LEDC_CHANNEL, 5000, 8);
+}
+
+void setBacklight(int brightness) {  // 0 - 255
+  ledcWrite(BL_LEDC_CHANNEL, brightness);
 }
 
 void my_disp_flush(lv_disp_drv_t* disp_drv,
@@ -44,11 +62,10 @@ void my_disp_flush(lv_disp_drv_t* disp_drv,
 }
 
 void initLVGL() {
-  // PWM backlight on PIN 27
-  pinMode(27, OUTPUT);
-  ledcAttachPin(27, 0);
-  ledcSetup(0, 5000, 8);
-  ledcWrite(0, 255);  // backlight on
+  initBacklight();
+  setBacklight(255);
+
+  lv_init();
 
   tft.init();
 
@@ -58,18 +75,8 @@ void initLVGL() {
   tft.fillScreen(ILI9341_CYAN);  // FIXME black
   tft.println("Starting...");
   delay(1000);
-  Serial.println("here a4");
+  tft.println("foobar");
 
-  // tft.setSwapBytes(true);
-
-  // lv_obj_t* scr = lv_obj_create(NULL, NULL);
-  // lv_scr_load(scr);
-
-  // lv_obj_t* label = lv_label_create(scr, NULL);
-  // lv_label_set_text(label, "Hello World!");
-  // lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
-
-  lv_init();
   Serial.println("here a5");
 
   lv_disp_drv_t disp_drv;
