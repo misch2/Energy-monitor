@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <WiFiManager.h>
+#include <ArduinoOTA.h>
 
 #define LED_PIN_RED 4
 #define LED_PIN_GREEN 16
@@ -33,6 +35,7 @@ static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * screenHeight / 10];
 
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
+WiFiManager wifiManager;
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -89,6 +92,11 @@ void turnOffLED(int led_pin) {
   digitalWrite(led_pin, HIGH);
 }
 
+void turnOnLED(int led_pin) {
+  pinMode(led_pin, OUTPUT);
+  digitalWrite(led_pin, LOW);
+}
+
 void turnOffAllLEDs() {
   turnOffLED(LED_PIN_RED);
   turnOffLED(LED_PIN_GREEN);
@@ -128,7 +136,8 @@ void initLVGL() {
 #endif
 
   tft.begin();        /* TFT init */
-  tft.setRotation(3); /* Landscape orientation, flipped */
+  tft.setRotation(1); /* Landscape orientation */
+  // tft.setRotation(3); /* Landscape orientation, flipped */
 
   /*Set the touchscreen calibration data,
    the actual data for your display can be acquired using
@@ -172,10 +181,30 @@ void setup() {
   initDisplay();
   initLVGL();
 
+  lv_obj_t* scr = lv_scr_act();
+  lv_obj_t* label2 = lv_label_create(scr);
+  lv_label_set_text(label2, "Connecting to WiFi");
+  lv_obj_align(label2, LV_ALIGN_CENTER, 0, 100);
+  lv_timer_handler(); /* let the GUI do its work */
+
+  Serial.println("Connecting to WiFi");
+  wifiManager.autoConnect();
+  Serial.println("Connected to WiFi");
+  delay(1000);
+
+  // enable OTA
+  // ArduinoOTA.setHostname("esp32");
+  lv_label_set_text(label2, "Enabling OTA");
+  ArduinoOTA.begin();
+  Serial.println("OTA ready");
+
+  lv_obj_del(label2);
+
   Serial.println("Setup done");
 }
 
 void loop() {
   lv_timer_handler(); /* let the GUI do its work */
+  ArduinoOTA.handle();
   delay(5);
 }
