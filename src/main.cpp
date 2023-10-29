@@ -1,10 +1,13 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
+#include <PubSubClient.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <lvgl.h>
+
+#include "secrets.h"
 
 #define LED_PIN_RED 4
 #define LED_PIN_GREEN 16
@@ -23,6 +26,8 @@ static lv_color_t buf[screenWidth * screenHeight / 10];
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 WiFiManager wifiManager;
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -178,6 +183,50 @@ static void event_handler(lv_event_t* e) {
   }
 }
 
+void MQTTcallback(char* topic, byte* payload, unsigned int length) {
+  // handle message arrived
+  Serial.print("Message arrived [");
+
+  String payloadString = "";
+  for (int i = 0; i < length; i++) {
+    payloadString += (char)payload[i];
+  }
+
+  Serial.print(topic);
+  Serial.print("] ");
+  Serial.println(payloadString);
+  Serial.println();
+}
+
+void initMQTT() {
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+  mqttClient.setCallback(MQTTcallback);  // FIXME name
+}
+
+void reconnectMQTT() {
+  if (mqttClient.connected()) {
+    return;
+  }
+
+  while (!mqttClient.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (mqttClient.connect("arduinoClient", MQTT_USER, MQTT_PASSWORD)) {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      // mqttClient.publish("outTopic", "hello world");
+      // ... and resubscribe
+      mqttClient.subscribe(MQTT_TOPIC);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
 void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
@@ -186,14 +235,20 @@ void setup() {
 
   lv_obj_t* scr = lv_scr_act();
   lv_obj_t* label2 = lv_label_create(scr);
-  lv_label_set_text(label2, "Connecting to WiFi");
   lv_obj_align(label2, LV_ALIGN_CENTER, 0, 100);
-  lv_timer_handler(); /* let the GUI do its work */
 
+  lv_label_set_text(label2, "Connecting to WiFi");
+  lv_timer_handler(); /* let the GUI do its work */
   Serial.println("Connecting to WiFi");
   wifiManager.autoConnect();
   Serial.println("Connected to WiFi");
   delay(1000);
+
+  lv_label_set_text(label2, "Connecting to MQTT");
+  lv_timer_handler(); /* let the GUI do its work */
+  Serial.println("Connecting to MQTT");
+  initMQTT();
+  reconnectMQTT();
 
   // enable OTA
   // ArduinoOTA.setHostname("esp32");
@@ -218,5 +273,6 @@ void setup() {
 void loop() {
   lv_timer_handler(); /* let the GUI do its work */
   ArduinoOTA.handle();
+  mqttClient.loop();
   delay(5);
 }
