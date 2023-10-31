@@ -4,6 +4,7 @@
 #include <ArduinoOTA.h>
 #include <Arduino_JSON.h>
 #include <Array.h>
+#include <CircularBuffer.h>
 #include <PubSubClient.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
@@ -50,6 +51,9 @@ String mqttTopicCurrentPower = "";
 int voltage = 0;
 int maxCurrent = 0;
 int maxWatts = 0;
+
+const int MAX_POWER_READINGS_BUFFER = 10;
+CircularBuffer<float, MAX_POWER_READINGS_BUFFER> powerReadingsBuffer;
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -208,6 +212,16 @@ static void event_handler(lv_event_t* e) {
 
 void handleMQTTMessageCurrentPower(String payloadString) {
   float currentWatts = payloadString.toFloat();
+
+  // add currentWatts to buffer and find max over last MAX_POWER_READINGS_BUFFER readings
+  powerReadingsBuffer.push(currentWatts);
+  float maxWatts = currentWatts;
+  for (decltype(powerReadingsBuffer)::index_t i = 0; i < powerReadingsBuffer.size(); i++) {
+    if (powerReadingsBuffer[i] > maxWatts) {
+      maxWatts = powerReadingsBuffer[i];
+    }
+  };
+
   float remainingWatts = maxWatts - currentWatts;
   // round down to multiples of 50
   int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;
@@ -339,6 +353,7 @@ void reconnectMQTT() {
 void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
+  powerReadingsBuffer.clear();
   initDisplay();
   initLVGL();
   ui_init();
