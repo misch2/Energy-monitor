@@ -913,7 +913,7 @@
               {
                 "nid": -550296749,
                 "strtype": "OBJECT/Clickable",
-                "strval": "True",
+                "strval": "False",
                 "InheritedType": 2
               },
               {
@@ -1593,7 +1593,7 @@
               {
                 "nid": -1681928572,
                 "strtype": "OBJECT/Clickable",
-                "strval": "True",
+                "strval": "False",
                 "InheritedType": 2
               },
               {

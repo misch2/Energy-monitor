@@ -123,7 +123,7 @@ void turnOffAllLEDs() {
 }
 
 int backlight_on = 0;
-Timemark backlightTimeout(30);  // in seconds
+Timemark backlightTimeout(30000);  // in milliseconds
 
 void setBacklight(int on_off) {  // 0 - 255
   Serial.print("Setting backlight to ");
@@ -233,7 +233,7 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 
     int applianceWatts = (int)appliance["power"];
     if (displayedRemainingWatts < applianceWatts) {
-      String name = (const char*)appliance["name"]["nominative"];
+      String name = (const char*)appliance["name"]["accusative"];
       applianceNames.push_back(name);
     }
   }
