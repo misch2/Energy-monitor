@@ -29,7 +29,6 @@ void ui_LoadingScreen_screen_init(void);
 extern lv_obj_t *ui_LoadingScreen;
 extern lv_obj_t *ui_Panel2;
 extern lv_obj_t *ui_LoadingLabel;
-extern lv_obj_t *ui_Spinner2;
 // SCREEN: ui_OKScreen
 void ui_OKScreen_screen_init(void);
 extern lv_obj_t *ui_OKScreen;
@@ -53,6 +52,7 @@ extern lv_obj_t *ui____initial_actions0;
 
 LV_FONT_DECLARE( ui_font_Calibri32);
 LV_FONT_DECLARE( ui_font_Calibri16);
+LV_FONT_DECLARE( ui_font_Calibri48);
 
 void ui_init(void);
 

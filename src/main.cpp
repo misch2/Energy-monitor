@@ -209,7 +209,7 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);
 
   String label = "";
-  label += remainingWatts;
+  label += (int)remainingWatts;
   label += " W";
   lv_label_set_text(ui_LabelRezervaOK, label.c_str());
 }

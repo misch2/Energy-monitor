@@ -14,7 +14,6 @@ void ui_LoadingScreen_screen_init(void);
 lv_obj_t *ui_LoadingScreen;
 lv_obj_t *ui_Panel2;
 lv_obj_t *ui_LoadingLabel;
-lv_obj_t *ui_Spinner2;
 
 
 // SCREEN: ui_OKScreen

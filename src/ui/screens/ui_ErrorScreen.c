@@ -41,7 +41,7 @@ lv_obj_set_align( ui_LabelRezervaError, LV_ALIGN_CENTER );
 lv_label_set_text(ui_LabelRezervaError,"??? W");
 lv_obj_set_style_text_color(ui_LabelRezervaError, lv_color_hex(0xC0C03F), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_LabelRezervaError, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_text_font(ui_LabelRezervaError, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_LabelRezervaError, &ui_font_Calibri48, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Label2 = lv_label_create(ui_Panel1);
 lv_obj_set_width( ui_Label2, LV_SIZE_CONTENT);  /// 1

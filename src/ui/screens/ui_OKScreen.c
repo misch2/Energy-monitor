@@ -41,7 +41,7 @@ lv_obj_set_x( ui_LabelRezervaOK, 0 );
 lv_obj_set_y( ui_LabelRezervaOK, 16 );
 lv_obj_set_align( ui_LabelRezervaOK, LV_ALIGN_CENTER );
 lv_label_set_text(ui_LabelRezervaOK,"??? W");
-lv_obj_set_style_text_font(ui_LabelRezervaOK, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_LabelRezervaOK, &ui_font_Calibri48, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_ArcCurrentWatts = lv_arc_create(ui_OKScreen);
 lv_obj_set_width( ui_ArcCurrentWatts, 150);

@@ -1,6 +1,7 @@
 .pio/
 .vscode/
 backup/
+autosave/
 *.spj
 *.sll
 src/ui/CMakeLists.txt

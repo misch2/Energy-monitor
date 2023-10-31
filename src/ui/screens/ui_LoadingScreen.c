@@ -28,13 +28,4 @@ lv_label_set_long_mode(ui_LoadingLabel,LV_LABEL_LONG_SCROLL);
 lv_label_set_text(ui_LoadingLabel,"Starting");
 lv_obj_set_style_text_font(ui_LoadingLabel, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Spinner2 = lv_spinner_create(ui_LoadingScreen,1000,90);
-lv_obj_set_width( ui_Spinner2, 80);
-lv_obj_set_height( ui_Spinner2, 80);
-lv_obj_set_x( ui_Spinner2, 0 );
-lv_obj_set_y( ui_Spinner2, 149 );
-lv_obj_set_align( ui_Spinner2, LV_ALIGN_CENTER );
-lv_obj_clear_flag( ui_Spinner2, LV_OBJ_FLAG_CLICKABLE );    /// Flags
-
-
 }
