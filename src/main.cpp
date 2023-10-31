@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <ArduinoOTA.h>
+#include <Arduino_JSON.h>
 #include <PubSubClient.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
@@ -44,6 +45,8 @@ TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWid
 WiFiManager wifiManager;
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
+JSONVar config;
+String mqttTopicCurrentPower = "";
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -150,12 +153,6 @@ void initDisplay() {
 }
 
 void initLVGL() {
-  String LVGL_Arduino = "Hello Arduino! ";
-  LVGL_Arduino += String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
-
-  Serial.println(LVGL_Arduino);
-  Serial.println("I am LVGL_Arduino");
-
   lv_init();
 
 #if LV_USE_LOG != 0
@@ -231,32 +228,45 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   }
 }
 
+void handleMQTTMessageConfiguration(String payloadString) {
+  // parse the payload into JSON
+  Serial.println("Configuration received:");
+  Serial.println(payloadString);
+
+  config = JSON.parse(payloadString);
+  if (JSON.typeof(config) == "undefined") {
+    Serial.println("Parsing input failed!");
+    return;
+  }
+
+  mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
+  Serial.println("Subscribing to topic [" + mqttTopicCurrentPower + "]");
+  bool ok = mqttClient.subscribe(mqttTopicCurrentPower.c_str());
+  // Serial.println(ok ? "Subscribed" : "Subscription failed");
+}
+
 // handle message arrived
 void MQTTcallback(char* topic, byte* payload, unsigned int length) {
-  // convert payload to string
+  String topicString = String(topic);
   String payloadString = "";
   for (int i = 0; i < length; i++) {
     payloadString += (char)payload[i];
   }
 
-  String topicString = String(topic);
+  // Serial.println("Message arrived on topic [" + topicString + "] Payload: [" + payloadString + "]");
 
-  // Serial.print("Message arrived [");
-  // Serial.print(topicString);
-  // Serial.print("] ");
-  // Serial.print(payloadString);
-  // Serial.println();
-
-  if (topicString.equals(MQTT_CURRENT_POWER_TOPIC)) {
+  if (topicString.equals(mqttTopicCurrentPower)) {
     handleMQTTMessageCurrentPower(payloadString);
+  } else if (topicString.equals(MQTT_CONFIGURATION_TOPIC)) {
+    handleMQTTMessageConfiguration(payloadString);
   } else {
-    Serial.print("Unknown topic: " + topicString);
+    Serial.println("Unknown topic [" + topicString + "]");
   }
 }
 
 void initMQTT() {
   mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-  mqttClient.setCallback(MQTTcallback);  // FIXME name
+  mqttClient.setCallback(MQTTcallback);
 }
 
 void reconnectMQTT() {
@@ -269,10 +279,9 @@ void reconnectMQTT() {
     // Attempt to connect
     if (mqttClient.connect("arduinoClient", MQTT_USER, MQTT_PASSWORD)) {
       Serial.println("connected");
-      // Once connected, publish an announcement...
-      // mqttClient.publish("outTopic", "hello world");
-      // ... and resubscribe
-      mqttClient.subscribe(MQTT_CURRENT_POWER_TOPIC);
+      Serial.println("Subscribing to topic [" + String(MQTT_CONFIGURATION_TOPIC) + "]");
+      bool ok = mqttClient.subscribe(MQTT_CONFIGURATION_TOPIC);
+      // Serial.println(ok ? "Subscribed" : "Subscription failed");
     } else {
       Serial.print("failed, rc=");
       Serial.print(mqttClient.state());
@@ -296,6 +305,12 @@ void setup() {
   setLoadingScreenText("Connecting to MQTT");
   initMQTT();
   reconnectMQTT();
+
+  setLoadingScreenText("Loading config from MQTT");
+  while (mqttTopicCurrentPower == "") {
+    mqttClient.loop();
+    delay(5);
+  }
 
   setLoadingScreenText("Enabling OTA");
   // enable OTA
