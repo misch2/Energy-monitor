@@ -1,2 +1,10 @@
 .pio/
 .vscode/
+backup/
+*.spj
+*.sll
+src/ui/CMakeLists.txt
+src/ui/filelist.txt
+include/secrets.h
+assets/ui_font_*.bin
+assets/*.ttf

@@ -8,6 +8,7 @@
 #include <lvgl.h>
 
 #include "secrets.h"
+#include "ui/ui.h"
 
 #define LED_PIN_RED 4
 #define LED_PIN_GREEN 16
@@ -16,9 +17,17 @@
 #define BL_LEDC_PIN 27
 #define BL_LEDC_CHANNEL 0
 
-/*Change to your screen resolution*/
-static const uint16_t screenWidth = 480;
-static const uint16_t screenHeight = 320;
+// landscape, USB on the right
+// #define ROTATE_TFT 1
+// #define ROTATE_TOUCH ROTATION_RIGHT
+
+// portrait, USB at the bottom
+#define ROTATE_TFT 0
+#define ROTATE_TOUCH ROTATION_INVERTED  // NORMAL, LEFT, INVERTED, RIGHT
+
+/* LOGICAL screen orientation (i.e. rotation dependent) */
+static const uint16_t screenWidth = 320;
+static const uint16_t screenHeight = 480;
 
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * screenHeight / 10];
@@ -117,7 +126,7 @@ void initDisplay() {
   setBacklight(255);
 
   tp.begin();
-  tp.setRotation(ROTATION_RIGHT);
+  tp.setRotation(ROTATE_TOUCH);
 }
 
 void initLVGL() {
@@ -133,15 +142,8 @@ void initLVGL() {
   lv_log_register_print_cb(my_print); /* register print function for debugging */
 #endif
 
-  tft.begin();        /* TFT init */
-  tft.setRotation(1); /* Landscape orientation */
-  // tft.setRotation(3); /* Landscape orientation, flipped */
-
-  /*Set the touchscreen calibration data,
-   the actual data for your display can be acquired using
-   the Generic -> Touch_calibrate example from the TFT_eSPI library*/
-  // uint16_t calData[5] = { 275, 3620, 264, 3532, 1 };
-  // tft.setTouch( calData );
+  tft.begin(); /* TFT init */
+  tft.setRotation(ROTATE_TFT);
 
   lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * screenHeight / 10);
 
@@ -161,16 +163,14 @@ void initLVGL() {
   indev_drv.type = LV_INDEV_TYPE_POINTER;
   indev_drv.read_cb = my_touchpad_read;
   lv_indev_drv_register(&indev_drv);
+}
 
-  /* Create simple label */
-  lv_obj_t* label = lv_label_create(lv_scr_act());
-  lv_label_set_text(label, LVGL_Arduino.c_str());
-  lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+void refresh_screen() { lv_timer_handler(); }
 
-  lv_obj_t* scr = lv_scr_act();
-  lv_obj_t* label2 = lv_label_create(scr);
-  lv_label_set_text(label2, "Hello, world!");
-  lv_obj_align(label2, LV_ALIGN_CENTER, 0, 50);
+void setLoadingScreenText(const char* text) {
+  Serial.println(text);
+  lv_label_set_text(ui_LoadingLabel, text);
+  refresh_screen();
 }
 
 static void event_handler(lv_event_t* e) {
@@ -194,8 +194,10 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
 
   Serial.print(topic);
   Serial.print("] ");
-  Serial.println(payloadString);
+  Serial.print(payloadString);
   Serial.println();
+
+  lv_label_set_text(ui_LabelRezervaOK, (payloadString + " W").c_str());
 }
 
 void initMQTT() {
@@ -232,42 +234,24 @@ void setup() {
 
   initDisplay();
   initLVGL();
+  ui_init();
 
-  lv_obj_t* scr = lv_scr_act();
-  lv_obj_t* label2 = lv_label_create(scr);
-  lv_obj_align(label2, LV_ALIGN_CENTER, 0, 100);
-
-  lv_label_set_text(label2, "Connecting to WiFi");
-  lv_timer_handler(); /* let the GUI do its work */
-  Serial.println("Connecting to WiFi");
+  setLoadingScreenText("Connecting to WiFi");
   wifiManager.autoConnect();
-  Serial.println("Connected to WiFi");
-  delay(1000);
 
-  lv_label_set_text(label2, "Connecting to MQTT");
-  lv_timer_handler(); /* let the GUI do its work */
-  Serial.println("Connecting to MQTT");
+  setLoadingScreenText("Connecting to MQTT");
   initMQTT();
   reconnectMQTT();
 
+  setLoadingScreenText("Enabling OTA");
   // enable OTA
   // ArduinoOTA.setHostname("esp32");
-  lv_label_set_text(label2, "Enabling OTA");
   ArduinoOTA.begin();
-  Serial.println("OTA ready");
 
-  lv_obj_del(label2);
+  setLoadingScreenText("Initialization done");
+  delay(1000);
 
-  lv_obj_t* button = lv_btn_create(scr);
-  lv_obj_align(button, LV_ALIGN_CENTER, 0, 130);
-  lv_obj_set_size(button, 100, 50);
-  lv_obj_add_event_cb(button, event_handler, LV_EVENT_ALL, NULL);
-
-  lv_obj_t* label3 = lv_label_create(button);
-  lv_label_set_text(label3, "Tlacitko");
-  lv_obj_align(label3, LV_ALIGN_CENTER, 0, 0);
-
-  Serial.println("Setup done");
+  lv_disp_load_scr(ui_OKScreen);
 }
 
 void loop() {
