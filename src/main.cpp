@@ -9,6 +9,7 @@
 #include <WiFiManager.h>
 #include <lvgl.h>
 
+#include "main.h"
 #include "secrets.h"
 #include "ui/ui.h"
 
@@ -202,20 +203,7 @@ static void event_handler(lv_event_t* e) {
   }
 }
 
-void MQTTcallback(char* topic, byte* payload, unsigned int length) {
-  // handle message arrived
-  Serial.print("Message arrived [");
-
-  String payloadString = "";
-  for (int i = 0; i < length; i++) {
-    payloadString += (char)payload[i];
-  }
-
-  Serial.print(topic);
-  Serial.print("] ");
-  Serial.print(payloadString);
-  Serial.println();
-
+void handleMQTTMessageCurrentPower(String payloadString) {
   float currentWatts = payloadString.toFloat();
   float remainingWatts = MAX_WATTS - currentWatts;
   // round down to multiples of 50
@@ -234,12 +222,35 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   lv_label_set_text(ui_LabelWattsUsed, label.c_str());
 
   // show green "OK" background and hide the red "Warning" background
-  if (displayedRemainingWatts == 5500) {
+  if (displayedRemainingWatts == 5500) {  // FIXME test only
     lv_obj_clear_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
+  }
+}
+
+// handle message arrived
+void MQTTcallback(char* topic, byte* payload, unsigned int length) {
+  // convert payload to string
+  String payloadString = "";
+  for (int i = 0; i < length; i++) {
+    payloadString += (char)payload[i];
+  }
+
+  String topicString = String(topic);
+
+  // Serial.print("Message arrived [");
+  // Serial.print(topicString);
+  // Serial.print("] ");
+  // Serial.print(payloadString);
+  // Serial.println();
+
+  if (topicString.equals(MQTT_CURRENT_POWER_TOPIC)) {
+    handleMQTTMessageCurrentPower(payloadString);
+  } else {
+    Serial.print("Unknown topic: " + topicString);
   }
 }
 
@@ -261,7 +272,7 @@ void reconnectMQTT() {
       // Once connected, publish an announcement...
       // mqttClient.publish("outTopic", "hello world");
       // ... and resubscribe
-      mqttClient.subscribe(MQTT_TOPIC);
+      mqttClient.subscribe(MQTT_CURRENT_POWER_TOPIC);
     } else {
       Serial.print("failed, rc=");
       Serial.print(mqttClient.state());
