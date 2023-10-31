@@ -1,1 +1,2 @@
 void toggleBacklight();
+void loop();

@@ -41,6 +41,8 @@ extern lv_obj_t *ui_Label3;
 extern lv_obj_t *ui_ArcCurrentWatts;
 extern lv_obj_t *ui_Label5;
 extern lv_obj_t *ui_LabelWattsUsed;
+extern lv_obj_t *ui_PanelAppliancesWarning;
+extern lv_obj_t *ui_TextAreaAppliancesWarning;
 extern lv_obj_t *ui____initial_actions0;
 
 

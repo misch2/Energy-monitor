@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <Arduino_JSON.h>
+#include <Array.h>
 #include <PubSubClient.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
@@ -227,6 +228,43 @@ void handleMQTTMessageCurrentPower(String payloadString) {
     lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
   }
+
+  // Compare displayedRemainingWatts with array of config["electricity"]["appliances"]
+  JSONVar appliances = config["electricity"]["appliances"];
+
+  const int MAX_APPLIANCES = 100;
+  Array<String, MAX_APPLIANCES> applianceNames;
+  for (int i = 0; i < appliances.length(); i++) {
+    JSONVar appliance = appliances[i];
+
+    int applianceWatts = (int)appliance["power"];
+    if (displayedRemainingWatts < applianceWatts) {
+      String name = (const char*)appliance["name"]["nominative"];
+      applianceNames.push_back(name);
+    }
+  }
+
+  if (applianceNames.size() == 0) {
+    lv_obj_add_flag(ui_PanelAppliancesWarning, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_clear_flag(ui_PanelAppliancesWarning, LV_OBJ_FLAG_HIDDEN);
+    String warning = "Nezapínej ";
+    if (applianceNames.size() == 1) {
+      warning += applianceNames[0];
+    } else {
+      for (int i = 0; i < applianceNames.size() - 1; i++) {
+        warning += applianceNames[i];
+        if (i == applianceNames.size() - 2) {
+          warning += " ani ";
+        } else {
+          warning += ", ";
+        }
+      }
+      warning += applianceNames[applianceNames.size() - 1];
+    }
+    warning += "!";
+    lv_textarea_set_text(ui_TextAreaAppliancesWarning, warning.c_str());
+  }
 }
 
 void handleMQTTMessageConfiguration(String payloadString) {
@@ -318,20 +356,18 @@ void setup() {
   initMQTT();
   reconnectMQTT();
 
-  setLoadingScreenText("Loading configuration");
-  while (mqttTopicCurrentPower == "") {
-    mqttClient.loop();
-    refresh_screen();
-    delay(5);
-  }
-
   setLoadingScreenText("Enabling OTA");
   // enable OTA
   // ArduinoOTA.setHostname("esp32");
   ArduinoOTA.begin();
 
-  setLoadingScreenText("Initialization done");
-  delay(1000);
+  setLoadingScreenText("Loading configuration");
+  while (mqttTopicCurrentPower == "") {
+    loop();
+  }
+
+  // setLoadingScreenText("Initialization done");
+  // delay(1000);
 
   lv_disp_load_scr(ui_OKScreen);
   Serial.println("Setup done");

@@ -107,6 +107,30 @@ lv_obj_set_align( ui_LabelWattsUsed, LV_ALIGN_CENTER );
 lv_label_set_text(ui_LabelWattsUsed,"??? W");
 lv_obj_set_style_text_font(ui_LabelWattsUsed, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_PanelAppliancesWarning = lv_obj_create(ui_OKScreen);
+lv_obj_set_width( ui_PanelAppliancesWarning, 320);
+lv_obj_set_height( ui_PanelAppliancesWarning, 100);
+lv_obj_set_x( ui_PanelAppliancesWarning, 0 );
+lv_obj_set_y( ui_PanelAppliancesWarning, -44 );
+lv_obj_set_align( ui_PanelAppliancesWarning, LV_ALIGN_CENTER );
+lv_obj_clear_flag( ui_PanelAppliancesWarning, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_bg_color(ui_PanelAppliancesWarning, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_TextAreaAppliancesWarning = lv_textarea_create(ui_PanelAppliancesWarning);
+lv_obj_set_width( ui_TextAreaAppliancesWarning, lv_pct(100));
+lv_obj_set_height( ui_TextAreaAppliancesWarning, lv_pct(100));
+lv_obj_set_align( ui_TextAreaAppliancesWarning, LV_ALIGN_CENTER );
+lv_textarea_set_text(ui_TextAreaAppliancesWarning,"asfasfas gjkh sdkjagh asjkdsdag\nsgad\nsg\nd\ngsd\nsg\nad\nsdga\nsgad\n");
+lv_textarea_set_placeholder_text(ui_TextAreaAppliancesWarning,"Placeholder...");
+lv_obj_add_flag( ui_TextAreaAppliancesWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
+
+
+
 lv_obj_add_event_cb(ui_OKScreen, ui_event_OKScreen, LV_EVENT_ALL, NULL);
 
 }
