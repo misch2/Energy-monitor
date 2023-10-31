@@ -23,6 +23,8 @@ lv_obj_set_style_border_width(ui_Panel2, 2, LV_PART_MAIN| LV_STATE_DEFAULT);
 ui_LoadingLabel = lv_label_create(ui_Panel2);
 lv_obj_set_width( ui_LoadingLabel, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_LoadingLabel, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_LoadingLabel, 2 );
+lv_obj_set_y( ui_LoadingLabel, 2 );
 lv_obj_set_align( ui_LoadingLabel, LV_ALIGN_CENTER );
 lv_label_set_long_mode(ui_LoadingLabel,LV_LABEL_LONG_SCROLL);
 lv_label_set_text(ui_LoadingLabel,"Starting");

@@ -18,23 +18,15 @@ lv_obj_t *ui_LoadingLabel;
 
 // SCREEN: ui_OKScreen
 void ui_OKScreen_screen_init(void);
+void ui_event_OKScreen( lv_event_t * e);
 lv_obj_t *ui_OKScreen;
-lv_obj_t *ui_Panel4;
+lv_obj_t *ui_PanelTopOK;
+lv_obj_t *ui_PanelTopWarning;
+lv_obj_t *ui_PanelTop;
+lv_obj_t *ui_LabelRezervaWattu;
 lv_obj_t *ui_Label3;
-lv_obj_t *ui_LabelRezervaOK;
 lv_obj_t *ui_ArcCurrentWatts;
 lv_obj_t *ui_Label5;
-
-
-// SCREEN: ui_ErrorScreen
-void ui_ErrorScreen_screen_init(void);
-lv_obj_t *ui_ErrorScreen;
-lv_obj_t *ui_Panel1;
-lv_obj_t *ui_Label1;
-lv_obj_t *ui_LabelRezervaError;
-lv_obj_t *ui_Label2;
-lv_obj_t *ui_PanelAppliance;
-lv_obj_t *ui_Label4;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -48,6 +40,12 @@ lv_obj_t *ui____initial_actions0;
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
+void ui_event_OKScreen( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+if ( event_code == LV_EVENT_CLICKED) {
+      ui_toggleBacklight( e );
+}
+}
 
 ///////////////////// SCREENS ////////////////////
 
@@ -58,7 +56,6 @@ lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE
 lv_disp_set_theme(dispp, theme);
 ui_LoadingScreen_screen_init();
 ui_OKScreen_screen_init();
-ui_ErrorScreen_screen_init();
 ui____initial_actions0 = lv_obj_create(NULL);
 lv_disp_load_scr( ui_LoadingScreen);
 }

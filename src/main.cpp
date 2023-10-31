@@ -8,6 +8,7 @@
 #include <lvgl.h>
 
 #include "secrets.h"
+#include "main.h"
 #include "ui/ui.h"
 
 #define LED_PIN_RED 4
@@ -113,21 +114,33 @@ void turnOffAllLEDs() {
   turnOffLED(LED_PIN_BLUE);
 }
 
+void setBacklight(int on_off) {  // 0 - 255
+  if (on_off == 0) {
+    ledcWrite(BL_LEDC_CHANNEL, 0);
+  } else {
+    ledcWrite(BL_LEDC_CHANNEL, 255);
+  }
+}
+
+int backlight_on;
+
+void toggleBacklight() {
+  backlight_on = !backlight_on;
+  setBacklight(backlight_on);
+}
+
 void initBacklight() {
   // PWM backlight on PIN 27
   pinMode(BL_LEDC_PIN, OUTPUT);
   ledcAttachPin(BL_LEDC_PIN, BL_LEDC_CHANNEL);
   ledcSetup(BL_LEDC_CHANNEL, 5000, 8);
-}
-
-void setBacklight(int brightness) {  // 0 - 255
-  ledcWrite(BL_LEDC_CHANNEL, brightness);
+  backlight_on = 0;
+  setBacklight(1);
 }
 
 void initDisplay() {
   turnOffAllLEDs();
   initBacklight();
-  setBacklight(255);
 
   tp.begin();
   tp.setRotation(ROTATE_TOUCH);
@@ -204,14 +217,23 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   float currentWatts = payloadString.toFloat();
   float remainingWatts = MAX_WATTS - currentWatts;
   // round down to multiples of 50
-  remainingWatts = (int)(remainingWatts / 50) * 50;
+  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;
 
   lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);
 
   String label = "";
-  label += (int)remainingWatts;
+  label += displayedRemainingWatts;
   label += " W";
-  lv_label_set_text(ui_LabelRezervaOK, label.c_str());
+  lv_label_set_text(ui_LabelRezervaWattu, label.c_str());
+
+  // show green "OK" background and hide the red "Warning" background
+  if (displayedRemainingWatts == 5500) {
+    lv_obj_clear_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
+  } else {
+    lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
+  }
 }
 
 void initMQTT() {

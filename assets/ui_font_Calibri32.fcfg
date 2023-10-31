@@ -4,7 +4,7 @@
   "bin_path": "\\assets\\ui_font_Calibri32.bin",
   "c_path": "\\assets\\ui_font_Calibri32.c",
   "cfg_path": "\\assets\\ui_font_Calibri32.fcfg",
-  "size": 38,
+  "size": 32,
   "bpp": 4,
   "letters": 0,
   "ranges": [

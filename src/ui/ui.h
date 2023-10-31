@@ -31,27 +31,21 @@ extern lv_obj_t *ui_Panel2;
 extern lv_obj_t *ui_LoadingLabel;
 // SCREEN: ui_OKScreen
 void ui_OKScreen_screen_init(void);
+void ui_event_OKScreen( lv_event_t * e);
 extern lv_obj_t *ui_OKScreen;
-extern lv_obj_t *ui_Panel4;
+extern lv_obj_t *ui_PanelTopOK;
+extern lv_obj_t *ui_PanelTopWarning;
+extern lv_obj_t *ui_PanelTop;
+extern lv_obj_t *ui_LabelRezervaWattu;
 extern lv_obj_t *ui_Label3;
-extern lv_obj_t *ui_LabelRezervaOK;
 extern lv_obj_t *ui_ArcCurrentWatts;
 extern lv_obj_t *ui_Label5;
-// SCREEN: ui_ErrorScreen
-void ui_ErrorScreen_screen_init(void);
-extern lv_obj_t *ui_ErrorScreen;
-extern lv_obj_t *ui_Panel1;
-extern lv_obj_t *ui_Label1;
-extern lv_obj_t *ui_LabelRezervaError;
-extern lv_obj_t *ui_Label2;
-extern lv_obj_t *ui_PanelAppliance;
-extern lv_obj_t *ui_Label4;
 extern lv_obj_t *ui____initial_actions0;
 
 
 
-LV_FONT_DECLARE( ui_font_Calibri32);
 LV_FONT_DECLARE( ui_font_Calibri16);
+LV_FONT_DECLARE( ui_font_Calibri32);
 LV_FONT_DECLARE( ui_font_Calibri48);
 
 void ui_init(void);
