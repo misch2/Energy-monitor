@@ -27,6 +27,7 @@ lv_obj_t *ui_LabelRezervaWattu;
 lv_obj_t *ui_Label3;
 lv_obj_t *ui_ArcCurrentWatts;
 lv_obj_t *ui_Label5;
+lv_obj_t *ui_LabelWattsUsed;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////

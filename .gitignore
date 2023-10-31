@@ -2,8 +2,8 @@
 .vscode/
 backup/
 autosave/
-*.spj
-*.sll
+# *.spj
+# *.sll
 src/ui/CMakeLists.txt
 src/ui/filelist.txt
 include/secrets.h

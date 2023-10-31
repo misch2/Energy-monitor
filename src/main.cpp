@@ -1,3 +1,5 @@
+#include "main.h"
+
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <PubSubClient.h>
@@ -8,7 +10,6 @@
 #include <lvgl.h>
 
 #include "secrets.h"
-#include "main.h"
 #include "ui/ui.h"
 
 #define LED_PIN_RED 4
@@ -114,20 +115,21 @@ void turnOffAllLEDs() {
   turnOffLED(LED_PIN_BLUE);
 }
 
+int backlight_on;
+
 void setBacklight(int on_off) {  // 0 - 255
+  Serial.print("Setting backlight to ");
+  Serial.println(on_off);
+
   if (on_off == 0) {
     ledcWrite(BL_LEDC_CHANNEL, 0);
   } else {
     ledcWrite(BL_LEDC_CHANNEL, 255);
   }
+  backlight_on = on_off;
 }
 
-int backlight_on;
-
-void toggleBacklight() {
-  backlight_on = !backlight_on;
-  setBacklight(backlight_on);
-}
+void toggleBacklight() { setBacklight(!backlight_on); }
 
 void initBacklight() {
   // PWM backlight on PIN 27
@@ -225,6 +227,11 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   label += displayedRemainingWatts;
   label += " W";
   lv_label_set_text(ui_LabelRezervaWattu, label.c_str());
+
+  label = "";
+  label += (int)(currentWatts);
+  label += " W";
+  lv_label_set_text(ui_LabelWattsUsed, label.c_str());
 
   // show green "OK" background and hide the red "Warning" background
   if (displayedRemainingWatts == 5500) {

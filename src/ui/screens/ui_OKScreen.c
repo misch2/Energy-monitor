@@ -73,7 +73,7 @@ ui_ArcCurrentWatts = lv_arc_create(ui_OKScreen);
 lv_obj_set_width( ui_ArcCurrentWatts, 150);
 lv_obj_set_height( ui_ArcCurrentWatts, 150);
 lv_obj_set_x( ui_ArcCurrentWatts, 0 );
-lv_obj_set_y( ui_ArcCurrentWatts, 112 );
+lv_obj_set_y( ui_ArcCurrentWatts, 146 );
 lv_obj_set_align( ui_ArcCurrentWatts, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
@@ -91,12 +91,21 @@ ui_Label5 = lv_label_create(ui_OKScreen);
 lv_obj_set_width( ui_Label5, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Label5, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_Label5, 0 );
-lv_obj_set_y( ui_Label5, 6 );
+lv_obj_set_y( ui_Label5, 37 );
 lv_obj_set_align( ui_Label5, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label5,"Aktuální spotřeba");
 lv_obj_add_flag( ui_Label5, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_set_style_text_color(ui_Label5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Label5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_LabelWattsUsed = lv_label_create(ui_OKScreen);
+lv_obj_set_width( ui_LabelWattsUsed, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_LabelWattsUsed, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_LabelWattsUsed, 0 );
+lv_obj_set_y( ui_LabelWattsUsed, 143 );
+lv_obj_set_align( ui_LabelWattsUsed, LV_ALIGN_CENTER );
+lv_label_set_text(ui_LabelWattsUsed,"??? W");
+lv_obj_set_style_text_font(ui_LabelWattsUsed, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_add_event_cb(ui_OKScreen, ui_event_OKScreen, LV_EVENT_ALL, NULL);
 
