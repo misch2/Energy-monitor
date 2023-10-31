@@ -22,14 +22,13 @@ void ui_event_OKScreen( lv_event_t * e);
 lv_obj_t *ui_OKScreen;
 lv_obj_t *ui_PanelTopOK;
 lv_obj_t *ui_PanelTopWarning;
+lv_obj_t *ui_TextAreaAppliancesWarning;
 lv_obj_t *ui_PanelTop;
 lv_obj_t *ui_LabelRezervaWattu;
 lv_obj_t *ui_Label3;
 lv_obj_t *ui_ArcCurrentWatts;
-lv_obj_t *ui_Label5;
 lv_obj_t *ui_LabelWattsUsed;
-lv_obj_t *ui_PanelAppliancesWarning;
-lv_obj_t *ui_TextAreaAppliancesWarning;
+lv_obj_t *ui_Label5;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////

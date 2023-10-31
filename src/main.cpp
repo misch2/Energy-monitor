@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
+#include <Timemark.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <lvgl.h>
@@ -121,7 +122,8 @@ void turnOffAllLEDs() {
   turnOffLED(LED_PIN_BLUE);
 }
 
-int backlight_on;
+int backlight_on = 0;
+Timemark backlightTimeout(30);  // in seconds
 
 void setBacklight(int on_off) {  // 0 - 255
   Serial.print("Setting backlight to ");
@@ -135,14 +137,16 @@ void setBacklight(int on_off) {  // 0 - 255
   backlight_on = on_off;
 }
 
-void toggleBacklight() { setBacklight(!backlight_on); }
+void toggleBacklight() {
+  setBacklight(!backlight_on);
+  backlightTimeout.stop();  // manual backlight control - disable auto-off
+}
 
 void initBacklight() {
   // PWM backlight on PIN 27
   pinMode(BL_LEDC_PIN, OUTPUT);
   ledcAttachPin(BL_LEDC_PIN, BL_LEDC_CHANNEL);
   ledcSetup(BL_LEDC_CHANNEL, 5000, 8);
-  backlight_on = 0;
   setBacklight(1);
 }
 
@@ -220,20 +224,10 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   label += " W";
   lv_label_set_text(ui_LabelWattsUsed, label.c_str());
 
-  // show green "OK" background and hide the red "Warning" background
-  if (displayedRemainingWatts == 5500) {  // FIXME test only
-    lv_obj_clear_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
-  } else {
-    lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
-  }
-
   // Compare displayedRemainingWatts with array of config["electricity"]["appliances"]
-  JSONVar appliances = config["electricity"]["appliances"];
-
   const int MAX_APPLIANCES = 100;
   Array<String, MAX_APPLIANCES> applianceNames;
+  JSONVar appliances = config["electricity"]["appliances"];
   for (int i = 0; i < appliances.length(); i++) {
     JSONVar appliance = appliances[i];
 
@@ -245,23 +239,26 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   }
 
   if (applianceNames.size() == 0) {
-    lv_obj_add_flag(ui_PanelAppliancesWarning, LV_OBJ_FLAG_HIDDEN);
+    // show green "OK" panel
+    lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
   } else {
-    lv_obj_clear_flag(ui_PanelAppliancesWarning, LV_OBJ_FLAG_HIDDEN);
+    // show red "Warning" panel
+    setBacklight(1);
+    backlightTimeout.start();  // turn off backlight after 30 seconds
+    lv_obj_add_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
+
     String warning = "Nezapínej ";
-    if (applianceNames.size() == 1) {
-      warning += applianceNames[0];
-    } else {
-      for (int i = 0; i < applianceNames.size() - 1; i++) {
-        warning += applianceNames[i];
-        if (i == applianceNames.size() - 2) {
-          warning += " ani ";
-        } else {
-          warning += ", ";
-        }
+    for (int i = 0; i < applianceNames.size() - 1; i++) {
+      warning += applianceNames[i];
+      if (i == applianceNames.size() - 2) {
+        warning += " ani ";
+      } else {
+        warning += ", ";
       }
-      warning += applianceNames[applianceNames.size() - 1];
     }
+    warning += applianceNames[applianceNames.size() - 1];
     warning += "!";
     lv_textarea_set_text(ui_TextAreaAppliancesWarning, warning.c_str());
   }
@@ -369,13 +366,20 @@ void setup() {
   // setLoadingScreenText("Initialization done");
   // delay(1000);
 
+  handleMQTTMessageCurrentPower("0");
   lv_disp_load_scr(ui_OKScreen);
+  refresh_screen();
+
   Serial.println("Setup done");
 }
 
 void loop() {
   ArduinoOTA.handle();
   mqttClient.loop();
+  if (backlightTimeout.expired()) {
+    setBacklight(0);
+    backlightTimeout.stop();
+  }
   refresh_screen();
   delay(5);
 }

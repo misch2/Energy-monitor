@@ -35,14 +35,13 @@ void ui_event_OKScreen( lv_event_t * e);
 extern lv_obj_t *ui_OKScreen;
 extern lv_obj_t *ui_PanelTopOK;
 extern lv_obj_t *ui_PanelTopWarning;
+extern lv_obj_t *ui_TextAreaAppliancesWarning;
 extern lv_obj_t *ui_PanelTop;
 extern lv_obj_t *ui_LabelRezervaWattu;
 extern lv_obj_t *ui_Label3;
 extern lv_obj_t *ui_ArcCurrentWatts;
-extern lv_obj_t *ui_Label5;
 extern lv_obj_t *ui_LabelWattsUsed;
-extern lv_obj_t *ui_PanelAppliancesWarning;
-extern lv_obj_t *ui_TextAreaAppliancesWarning;
+extern lv_obj_t *ui_Label5;
 extern lv_obj_t *ui____initial_actions0;
 
 

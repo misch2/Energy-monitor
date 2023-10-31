@@ -12,10 +12,8 @@ lv_obj_clear_flag( ui_OKScreen, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_text_font(ui_OKScreen, &ui_font_Calibri16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_PanelTopOK = lv_obj_create(ui_OKScreen);
-lv_obj_set_width( ui_PanelTopOK, 300);
+lv_obj_set_width( ui_PanelTopOK, 320);
 lv_obj_set_height( ui_PanelTopOK, 115);
-lv_obj_set_x( ui_PanelTopOK, 0 );
-lv_obj_set_y( ui_PanelTopOK, 10 );
 lv_obj_set_align( ui_PanelTopOK, LV_ALIGN_TOP_MID );
 lv_obj_add_flag( ui_PanelTopOK, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopOK, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
@@ -26,10 +24,8 @@ lv_obj_set_style_border_opa(ui_PanelTopOK, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_PanelTopOK, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_PanelTopWarning = lv_obj_create(ui_OKScreen);
-lv_obj_set_width( ui_PanelTopWarning, 300);
-lv_obj_set_height( ui_PanelTopWarning, 115);
-lv_obj_set_x( ui_PanelTopWarning, 0 );
-lv_obj_set_y( ui_PanelTopWarning, 10 );
+lv_obj_set_width( ui_PanelTopWarning, 320);
+lv_obj_set_height( ui_PanelTopWarning, 290);
 lv_obj_set_align( ui_PanelTopWarning, LV_ALIGN_TOP_MID );
 lv_obj_add_flag( ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopWarning, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
@@ -39,11 +35,26 @@ lv_obj_set_style_border_color(ui_PanelTopWarning, lv_color_hex(0xFF8080), LV_PAR
 lv_obj_set_style_border_opa(ui_PanelTopWarning, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_border_width(ui_PanelTopWarning, 1, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_TextAreaAppliancesWarning = lv_textarea_create(ui_PanelTopWarning);
+lv_obj_set_height( ui_TextAreaAppliancesWarning, 170);
+lv_obj_set_width( ui_TextAreaAppliancesWarning, lv_pct(100));
+lv_obj_set_align( ui_TextAreaAppliancesWarning, LV_ALIGN_BOTTOM_MID );
+lv_textarea_set_text(ui_TextAreaAppliancesWarning,"Zde bude seznam toho, co se nemá zapínat.");
+lv_obj_add_flag( ui_TextAreaAppliancesWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
+lv_obj_set_style_text_font(ui_TextAreaAppliancesWarning, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_TextAreaAppliancesWarning, lv_color_hex(0xA80000), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_TextAreaAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_side(ui_TextAreaAppliancesWarning, LV_BORDER_SIDE_NONE, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_left(ui_TextAreaAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_right(ui_TextAreaAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_top(ui_TextAreaAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_pad_bottom(ui_TextAreaAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+
+
 ui_PanelTop = lv_obj_create(ui_OKScreen);
-lv_obj_set_width( ui_PanelTop, 300);
+lv_obj_set_width( ui_PanelTop, 320);
 lv_obj_set_height( ui_PanelTop, 115);
-lv_obj_set_x( ui_PanelTop, 0 );
-lv_obj_set_y( ui_PanelTop, 10 );
 lv_obj_set_align( ui_PanelTop, LV_ALIGN_TOP_MID );
 lv_obj_add_flag( ui_PanelTop, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTop, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
@@ -73,8 +84,8 @@ ui_ArcCurrentWatts = lv_arc_create(ui_OKScreen);
 lv_obj_set_width( ui_ArcCurrentWatts, 150);
 lv_obj_set_height( ui_ArcCurrentWatts, 150);
 lv_obj_set_x( ui_ArcCurrentWatts, 0 );
-lv_obj_set_y( ui_ArcCurrentWatts, 146 );
-lv_obj_set_align( ui_ArcCurrentWatts, LV_ALIGN_CENTER );
+lv_obj_set_y( ui_ArcCurrentWatts, 14 );
+lv_obj_set_align( ui_ArcCurrentWatts, LV_ALIGN_BOTTOM_MID );
 lv_obj_add_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
 lv_arc_set_value(ui_ArcCurrentWatts, 15);
@@ -87,49 +98,23 @@ lv_obj_set_style_arc_opa(ui_ArcCurrentWatts, 255, LV_PART_INDICATOR| LV_STATE_DE
 lv_obj_set_style_bg_color(ui_ArcCurrentWatts, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_ArcCurrentWatts, 0, LV_PART_KNOB| LV_STATE_DEFAULT);
 
-ui_Label5 = lv_label_create(ui_OKScreen);
-lv_obj_set_width( ui_Label5, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Label5, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Label5, 0 );
-lv_obj_set_y( ui_Label5, 37 );
-lv_obj_set_align( ui_Label5, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Label5,"Aktuální spotřeba");
-lv_obj_add_flag( ui_Label5, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
-lv_obj_set_style_text_color(ui_Label5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_text_opa(ui_Label5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_LabelWattsUsed = lv_label_create(ui_OKScreen);
+ui_LabelWattsUsed = lv_label_create(ui_ArcCurrentWatts);
 lv_obj_set_width( ui_LabelWattsUsed, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_LabelWattsUsed, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_LabelWattsUsed, 0 );
-lv_obj_set_y( ui_LabelWattsUsed, 143 );
 lv_obj_set_align( ui_LabelWattsUsed, LV_ALIGN_CENTER );
 lv_label_set_text(ui_LabelWattsUsed,"??? W");
 lv_obj_set_style_text_font(ui_LabelWattsUsed, &ui_font_Calibri32, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_PanelAppliancesWarning = lv_obj_create(ui_OKScreen);
-lv_obj_set_width( ui_PanelAppliancesWarning, 320);
-lv_obj_set_height( ui_PanelAppliancesWarning, 100);
-lv_obj_set_x( ui_PanelAppliancesWarning, 0 );
-lv_obj_set_y( ui_PanelAppliancesWarning, -44 );
-lv_obj_set_align( ui_PanelAppliancesWarning, LV_ALIGN_CENTER );
-lv_obj_clear_flag( ui_PanelAppliancesWarning, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_obj_set_style_bg_color(ui_PanelAppliancesWarning, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_bg_opa(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_left(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_right(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_top(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_pad_bottom(ui_PanelAppliancesWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_TextAreaAppliancesWarning = lv_textarea_create(ui_PanelAppliancesWarning);
-lv_obj_set_width( ui_TextAreaAppliancesWarning, lv_pct(100));
-lv_obj_set_height( ui_TextAreaAppliancesWarning, lv_pct(100));
-lv_obj_set_align( ui_TextAreaAppliancesWarning, LV_ALIGN_CENTER );
-lv_textarea_set_text(ui_TextAreaAppliancesWarning,"asfasfas gjkh sdkjagh asjkdsdag\nsgad\nsg\nd\ngsd\nsg\nad\nsdga\nsgad\n");
-lv_textarea_set_placeholder_text(ui_TextAreaAppliancesWarning,"Placeholder...");
-lv_obj_add_flag( ui_TextAreaAppliancesWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
-
-
+ui_Label5 = lv_label_create(ui_OKScreen);
+lv_obj_set_width( ui_Label5, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_Label5, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_Label5, 0 );
+lv_obj_set_y( ui_Label5, -155 );
+lv_obj_set_align( ui_Label5, LV_ALIGN_BOTTOM_MID );
+lv_label_set_text(ui_Label5,"Aktuální spotřeba");
+lv_obj_add_flag( ui_Label5, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
+lv_obj_set_style_text_color(ui_Label5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_Label5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 lv_obj_add_event_cb(ui_OKScreen, ui_event_OKScreen, LV_EVENT_ALL, NULL);
 
