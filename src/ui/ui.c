@@ -14,6 +14,7 @@ void ui_LoadingScreen_screen_init(void);
 lv_obj_t *ui_LoadingScreen;
 lv_obj_t *ui_Panel2;
 lv_obj_t *ui_LoadingLabel;
+lv_obj_t *ui_Spinner2;
 
 
 // SCREEN: ui_OKScreen
@@ -22,6 +23,8 @@ lv_obj_t *ui_OKScreen;
 lv_obj_t *ui_Panel4;
 lv_obj_t *ui_Label3;
 lv_obj_t *ui_LabelRezervaOK;
+lv_obj_t *ui_ArcCurrentWatts;
+lv_obj_t *ui_Label5;
 
 
 // SCREEN: ui_ErrorScreen

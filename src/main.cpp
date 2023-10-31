@@ -32,6 +32,10 @@ static const uint16_t screenHeight = 480;
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * screenHeight / 10];
 
+static const int VOLTAGE = 230;
+static const int MAX_CURRENT = 25;
+static const int MAX_WATTS = VOLTAGE * MAX_CURRENT;
+
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 WiFiManager wifiManager;
@@ -197,7 +201,17 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   Serial.print(payloadString);
   Serial.println();
 
-  lv_label_set_text(ui_LabelRezervaOK, (payloadString + " W").c_str());
+  float currentWatts = payloadString.toFloat();
+  float remainingWatts = MAX_WATTS - currentWatts;
+  // round down to multiples of 50
+  remainingWatts = (int)(remainingWatts / 50) * 50;
+
+  lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);
+
+  String label = "";
+  label += remainingWatts;
+  label += " W";
+  lv_label_set_text(ui_LabelRezervaOK, label.c_str());
 }
 
 void initMQTT() {
@@ -251,6 +265,7 @@ void setup() {
   setLoadingScreenText("Initialization done");
   delay(1000);
 
+  lv_arc_set_range(ui_ArcCurrentWatts, 0, MAX_WATTS);
   lv_disp_load_scr(ui_OKScreen);
 }
 

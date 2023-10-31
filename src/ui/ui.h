@@ -29,12 +29,15 @@ void ui_LoadingScreen_screen_init(void);
 extern lv_obj_t *ui_LoadingScreen;
 extern lv_obj_t *ui_Panel2;
 extern lv_obj_t *ui_LoadingLabel;
+extern lv_obj_t *ui_Spinner2;
 // SCREEN: ui_OKScreen
 void ui_OKScreen_screen_init(void);
 extern lv_obj_t *ui_OKScreen;
 extern lv_obj_t *ui_Panel4;
 extern lv_obj_t *ui_Label3;
 extern lv_obj_t *ui_LabelRezervaOK;
+extern lv_obj_t *ui_ArcCurrentWatts;
+extern lv_obj_t *ui_Label5;
 // SCREEN: ui_ErrorScreen
 void ui_ErrorScreen_screen_init(void);
 extern lv_obj_t *ui_ErrorScreen;
