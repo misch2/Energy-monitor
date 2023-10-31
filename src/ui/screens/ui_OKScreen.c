@@ -17,6 +17,7 @@ lv_obj_set_height( ui_PanelTopOK, 115);
 lv_obj_set_x( ui_PanelTopOK, 0 );
 lv_obj_set_y( ui_PanelTopOK, 10 );
 lv_obj_set_align( ui_PanelTopOK, LV_ALIGN_TOP_MID );
+lv_obj_add_flag( ui_PanelTopOK, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopOK, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_bg_color(ui_PanelTopOK, lv_color_hex(0x007F00), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_PanelTopOK, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -30,7 +31,7 @@ lv_obj_set_height( ui_PanelTopWarning, 115);
 lv_obj_set_x( ui_PanelTopWarning, 0 );
 lv_obj_set_y( ui_PanelTopWarning, 10 );
 lv_obj_set_align( ui_PanelTopWarning, LV_ALIGN_TOP_MID );
-lv_obj_add_flag( ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN );   /// Flags
+lv_obj_add_flag( ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN | LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopWarning, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_bg_color(ui_PanelTopWarning, lv_color_hex(0xA80000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_PanelTopWarning, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -44,6 +45,7 @@ lv_obj_set_height( ui_PanelTop, 115);
 lv_obj_set_x( ui_PanelTop, 0 );
 lv_obj_set_y( ui_PanelTop, 10 );
 lv_obj_set_align( ui_PanelTop, LV_ALIGN_TOP_MID );
+lv_obj_add_flag( ui_PanelTop, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTop, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_bg_color(ui_PanelTop, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_bg_opa(ui_PanelTop, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -73,6 +75,7 @@ lv_obj_set_height( ui_ArcCurrentWatts, 150);
 lv_obj_set_x( ui_ArcCurrentWatts, 0 );
 lv_obj_set_y( ui_ArcCurrentWatts, 112 );
 lv_obj_set_align( ui_ArcCurrentWatts, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_ArcCurrentWatts, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
 lv_arc_set_value(ui_ArcCurrentWatts, 15);
 lv_obj_set_style_arc_color(ui_ArcCurrentWatts, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT );
@@ -91,6 +94,7 @@ lv_obj_set_x( ui_Label5, 0 );
 lv_obj_set_y( ui_Label5, 6 );
 lv_obj_set_align( ui_Label5, LV_ALIGN_CENTER );
 lv_label_set_text(ui_Label5,"Aktuální spotřeba");
+lv_obj_add_flag( ui_Label5, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_set_style_text_color(ui_Label5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Label5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
