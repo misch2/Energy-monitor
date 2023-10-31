@@ -36,17 +36,18 @@ static const uint16_t screenHeight = 480;
 static lv_disp_draw_buf_t draw_buf;
 static lv_color_t buf[screenWidth * screenHeight / 10];
 
-static const int VOLTAGE = 230;
-static const int MAX_CURRENT = 25;
-static const int MAX_WATTS = VOLTAGE * MAX_CURRENT;
-
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 WiFiManager wifiManager;
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
+
 JSONVar config;
+// parsed values from config
 String mqttTopicCurrentPower = "";
+int voltage = 0;
+int maxCurrent = 0;
+int maxWatts = 0;
 
 #if LV_USE_LOG != 0
 /* Serial debugging */
@@ -202,7 +203,7 @@ static void event_handler(lv_event_t* e) {
 
 void handleMQTTMessageCurrentPower(String payloadString) {
   float currentWatts = payloadString.toFloat();
-  float remainingWatts = MAX_WATTS - currentWatts;
+  float remainingWatts = maxWatts - currentWatts;
   // round down to multiples of 50
   int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;
 
@@ -238,6 +239,14 @@ void handleMQTTMessageConfiguration(String payloadString) {
     Serial.println("Parsing input failed!");
     return;
   }
+
+  Serial.println("Parsed configuration:");
+  Serial.println(JSON.stringify(config));
+
+  voltage = (int)config["electricity"]["meter"]["voltage"];
+  maxCurrent = (int)config["electricity"]["meter"]["current"];
+  maxWatts = voltage * maxCurrent;
+  lv_arc_set_range(ui_ArcCurrentWatts, 0, maxWatts);
 
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
   Serial.println("Subscribing to topic [" + mqttTopicCurrentPower + "]");
@@ -277,7 +286,7 @@ void reconnectMQTT() {
   while (!mqttClient.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (mqttClient.connect("arduinoClient", MQTT_USER, MQTT_PASSWORD)) {
+    if (mqttClient.connect("EnergyMonitor/1.0", MQTT_USER, MQTT_PASSWORD)) {
       Serial.println("connected");
       Serial.println("Subscribing to topic [" + String(MQTT_CONFIGURATION_TOPIC) + "]");
       bool ok = mqttClient.subscribe(MQTT_CONFIGURATION_TOPIC);
@@ -300,15 +309,19 @@ void setup() {
   ui_init();
 
   setLoadingScreenText("Connecting to WiFi");
+  // if (!wifiManager.getWiFiIsSaved()) {
+  //   setLoadingScreenText("Starting WiFi AP!");
+  // }
   wifiManager.autoConnect();
 
   setLoadingScreenText("Connecting to MQTT");
   initMQTT();
   reconnectMQTT();
 
-  setLoadingScreenText("Loading config from MQTT");
+  setLoadingScreenText("Loading configuration");
   while (mqttTopicCurrentPower == "") {
     mqttClient.loop();
+    refresh_screen();
     delay(5);
   }
 
@@ -320,13 +333,13 @@ void setup() {
   setLoadingScreenText("Initialization done");
   delay(1000);
 
-  lv_arc_set_range(ui_ArcCurrentWatts, 0, MAX_WATTS);
   lv_disp_load_scr(ui_OKScreen);
+  Serial.println("Setup done");
 }
 
 void loop() {
-  lv_timer_handler(); /* let the GUI do its work */
   ArduinoOTA.handle();
   mqttClient.loop();
+  refresh_screen();
   delay(5);
 }
