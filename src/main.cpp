@@ -50,7 +50,7 @@ JSONVar config;
 String mqttTopicCurrentPower = "";
 int voltage = 0;
 int maxCurrent = 0;
-int maxWatts = 0;
+int limitWatts = 0;
 
 const int MAX_POWER_READINGS_BUFFER = 10;
 CircularBuffer<float, MAX_POWER_READINGS_BUFFER> powerReadingsBuffer;
@@ -215,18 +215,17 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 
   // add currentWatts to buffer and find max over last MAX_POWER_READINGS_BUFFER readings
   powerReadingsBuffer.push(currentWatts);
-  float maxWatts = currentWatts;
+  float filteredCurrentWatts = currentWatts;
   for (decltype(powerReadingsBuffer)::index_t i = 0; i < powerReadingsBuffer.size(); i++) {
-    if (powerReadingsBuffer[i] > maxWatts) {
-      maxWatts = powerReadingsBuffer[i];
+    if (powerReadingsBuffer[i] > filteredCurrentWatts) {
+      filteredCurrentWatts = powerReadingsBuffer[i];
     }
   };
 
-  float remainingWatts = maxWatts - currentWatts;
-  // round down to multiples of 50
-  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;
+  float remainingWatts = limitWatts - filteredCurrentWatts;       // time filtered and rounded down value for the warning message, to prevent flickering
+  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;  // round down to multiples of 50
 
-  lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);
+  lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);  // non-filtered and more precise value for the gauge
 
   String label = "";
   label += displayedRemainingWatts;
@@ -294,8 +293,8 @@ void handleMQTTMessageConfiguration(String payloadString) {
 
   voltage = (int)config["electricity"]["meter"]["voltage"];
   maxCurrent = (int)config["electricity"]["meter"]["current"];
-  maxWatts = voltage * maxCurrent;
-  lv_arc_set_range(ui_ArcCurrentWatts, 0, maxWatts);
+  limitWatts = voltage * maxCurrent;
+  lv_arc_set_range(ui_ArcCurrentWatts, 0, limitWatts);
 
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
   Serial.println("Subscribing to topic [" + mqttTopicCurrentPower + "]");
