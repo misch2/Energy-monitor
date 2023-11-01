@@ -1,11 +1,11 @@
 .pio/
 .vscode/
-backup/
-autosave/
-# *.spj
-# *.sll
-src/ui/CMakeLists.txt
-src/ui/filelist.txt
-include/secrets.h
-assets/ui_font_*.bin
-assets/*.ttf
+SquareLineStudio_sources/backup/
+SquareLineStudio_sources/assets/ui_font_*.bin
+SquareLineStudio_sources/assets/*.ttf
+SquareLineStudio_sources/autosave/
+SquareLineStudio_sources/*_events.py
+client/src/ui/CMakeLists.txt
+client/src/ui/filelist.txt
+client/include/secrets.h
+examples/config.production.json
