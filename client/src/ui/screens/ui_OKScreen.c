@@ -12,10 +12,10 @@ lv_obj_clear_flag( ui_OKScreen, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 lv_obj_set_style_text_font(ui_OKScreen, &ui_font_Calibri16, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_PanelTopOK = lv_obj_create(ui_OKScreen);
-lv_obj_set_width( ui_PanelTopOK, 320);
+lv_obj_set_width( ui_PanelTopOK, 240);
 lv_obj_set_height( ui_PanelTopOK, 115);
 lv_obj_set_x( ui_PanelTopOK, 0 );
-lv_obj_set_y( ui_PanelTopOK, 70 );
+lv_obj_set_y( ui_PanelTopOK, 50 );
 lv_obj_set_align( ui_PanelTopOK, LV_ALIGN_TOP_MID );
 lv_obj_add_flag( ui_PanelTopOK, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopOK, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags

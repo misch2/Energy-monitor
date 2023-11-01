@@ -1488,7 +1488,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  70
+                  50
                 ],
                 "InheritedType": 7
               },
@@ -1497,7 +1497,7 @@
                 "flags": 17,
                 "strtype": "OBJECT/Size",
                 "intarray": [
-                  320,
+                  240,
                   115
                 ],
                 "InheritedType": 7
