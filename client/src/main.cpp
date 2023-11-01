@@ -36,6 +36,8 @@
 #define ROTATE_TFT 0
 #define ROTATE_TOUCH ROTATION_INVERTED  // NORMAL, LEFT, INVERTED, RIGHT
 
+#define MAX_APPLIANCES 12  // as in the UI files (number of the last ui_LabelApplianceXX)
+
 /* LOGICAL screen orientation (i.e. rotation dependent) */
 static const uint16_t screenWidth = 320;
 static const uint16_t screenHeight = 480;
@@ -116,8 +118,11 @@ int backlight_on = 0;
 Timemark backlightTimeout(30000);  // in milliseconds
 
 void setBacklight(int on_off) {  // 0 - 255
-  DEBUG_PRINT("Setting backlight to %d", on_off);
+  if (backlight_on == on_off) {
+    return;
+  }
 
+  DEBUG_PRINT("Setting backlight to %d", on_off);
   if (on_off == 0) {
     ledcWrite(BL_LEDC_CHANNEL, 0);
   } else {
@@ -186,6 +191,29 @@ void setLoadingScreenText(const char* text) {
   refresh_screen();
 }
 
+bool showApplianceLabel(lv_obj_t* ui_element, JSONVar appliances, int number, int remainingWatts) {
+  // DEBUG_PRINT("in showApplianceLabel(%d, %d)", number, remainingWatts);
+  if (number > appliances.length()) {
+    // DEBUG_PRINT("Appliance #%d not found in config, skipping this label", number);
+    lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+    return false;
+  }
+
+  JSONVar appliance = appliances[number - 1];
+  if (remainingWatts > (int)appliance["power"]) {
+    // DEBUG_PRINT("Appliance %d compliant, remainingWatts %d > %d, skipping this label", number, remainingWatts, (int)appliance["power"]);
+    lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+    return false;
+  };
+
+  String name = (const char*)appliance["name"]["accusative"];
+  // DEBUG_PRINT("Appliance %d displayed, remainingWatts %d <= %d, name: %s", number, remainingWatts, (int)appliance["power"], name.c_str());
+  lv_label_set_text(ui_element, name.c_str());
+  lv_obj_clear_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+
+  return true;
+}
+
 void handleMQTTMessageCurrentPower(String payloadString) {
   float currentWatts = payloadString.toFloat();
 
@@ -217,41 +245,31 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
   lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
 
-  // Compare displayedRemainingWatts with array of config["electricity"]["appliances"]
-  const int MAX_APPLIANCES = 100;
-  Array<String, MAX_APPLIANCES> applianceNames;
   JSONVar appliances = config["electricity"]["appliances"];
-  for (int i = 0; i < appliances.length(); i++) {
-    JSONVar appliance = appliances[i];
-
-    int applianceWatts = (int)appliance["power"];
-    if (displayedRemainingWatts < applianceWatts) {
-      String name = (const char*)appliance["name"]["accusative"];
-      applianceNames.push_back(name);
-    }
+  if (appliances.length() > MAX_APPLIANCES) {
+    DEBUG_PRINT("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
   }
 
-  if (applianceNames.size() == 0) {
-    // show the green "OK" panel
-    lv_disp_load_scr(ui_OKScreen);
-  } else {
-    // show the red "Warning" panel
+  bool displayed_warning = false;
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance1, appliances, 1, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance2, appliances, 2, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance3, appliances, 3, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance4, appliances, 4, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance5, appliances, 5, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance6, appliances, 6, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance7, appliances, 7, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance8, appliances, 8, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance9, appliances, 9, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance10, appliances, 10, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance11, appliances, 11, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance12, appliances, 12, displayedRemainingWatts);
+
+  if (displayed_warning) {
     lv_disp_load_scr(ui_WarningScreen);
     setBacklight(1);
     backlightTimeout.start();  // turn off backlight after 30 seconds
-
-    String warning = "Nezapínej ";
-    for (int i = 0; i < applianceNames.size() - 1; i++) {
-      warning += applianceNames[i];
-      if (i == applianceNames.size() - 2) {
-        warning += " ani ";
-      } else {
-        warning += ", ";
-      }
-    }
-    warning += applianceNames[applianceNames.size() - 1];
-    warning += "!";
-    lv_textarea_set_text(ui_TextAreaAppliancesWarning, warning.c_str());
+  } else {
+    lv_disp_load_scr(ui_OKScreen);
   }
 }
 
@@ -310,14 +328,13 @@ void reconnectMQTT() {
     DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
     if (mqttClient.connect("EnergyMonitor/1.0", MQTT_USER, MQTT_PASSWORD)) {
-      DEBUG_PRINT("connected");
+      DEBUG_PRINT(" - connected");
       DEBUG_PRINT("Subscribing to topic [%s]", MQTT_CONFIGURATION_TOPIC);
       bool ok = mqttClient.subscribe(MQTT_CONFIGURATION_TOPIC);
       // DEBUG_PRINT(ok ? "Subscribed" : "Subscription failed");
     } else {
-      DEBUG_PRINT("failed, rc=%d", mqttClient.state());
-      DEBUG_PRINT(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
+      DEBUG_PRINT(" - failed, rc=%d", mqttClient.state());
+      DEBUG_PRINT(" - trying again in 5 seconds");
       delay(5000);
     }
   }

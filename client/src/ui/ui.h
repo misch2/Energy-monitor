@@ -44,12 +44,25 @@ void ui_WarningScreen_screen_init(void);
 void ui_event_WarningScreen( lv_event_t * e);
 extern lv_obj_t *ui_WarningScreen;
 extern lv_obj_t *ui_PanelTopWarning;
-extern lv_obj_t *ui_TextAreaAppliancesWarning;
 extern lv_obj_t *ui_LabelRemainingWattsWarning;
 extern lv_obj_t *ui_Label1;
+extern lv_obj_t *ui_LabelAppliance1;
+extern lv_obj_t *ui_LabelAppliance2;
+extern lv_obj_t *ui_LabelAppliance3;
+extern lv_obj_t *ui_LabelAppliance8;
+extern lv_obj_t *ui_LabelAppliance4;
+extern lv_obj_t *ui_LabelAppliance5;
+extern lv_obj_t *ui_LabelAppliance6;
+extern lv_obj_t *ui_LabelAppliance7;
+extern lv_obj_t *ui_LabelAppliance9;
+extern lv_obj_t *ui_LabelAppliance10;
+extern lv_obj_t *ui_LabelAppliance11;
+extern lv_obj_t *ui_LabelAppliance12;
 extern lv_obj_t *ui_ArcCurrentWattsWarning;
 extern lv_obj_t *ui_LabelWattsUsedWarning;
 extern lv_obj_t *ui_Label2;
+extern lv_obj_t *ui_TextAreaAppliancesWarning;
+extern lv_obj_t *ui_Label4;
 extern lv_obj_t *ui____initial_actions0;
 
 

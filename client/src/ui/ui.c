@@ -33,12 +33,25 @@ void ui_WarningScreen_screen_init(void);
 void ui_event_WarningScreen( lv_event_t * e);
 lv_obj_t *ui_WarningScreen;
 lv_obj_t *ui_PanelTopWarning;
-lv_obj_t *ui_TextAreaAppliancesWarning;
 lv_obj_t *ui_LabelRemainingWattsWarning;
 lv_obj_t *ui_Label1;
+lv_obj_t *ui_LabelAppliance1;
+lv_obj_t *ui_LabelAppliance2;
+lv_obj_t *ui_LabelAppliance3;
+lv_obj_t *ui_LabelAppliance8;
+lv_obj_t *ui_LabelAppliance4;
+lv_obj_t *ui_LabelAppliance5;
+lv_obj_t *ui_LabelAppliance6;
+lv_obj_t *ui_LabelAppliance7;
+lv_obj_t *ui_LabelAppliance9;
+lv_obj_t *ui_LabelAppliance10;
+lv_obj_t *ui_LabelAppliance11;
+lv_obj_t *ui_LabelAppliance12;
 lv_obj_t *ui_ArcCurrentWattsWarning;
 lv_obj_t *ui_LabelWattsUsedWarning;
 lv_obj_t *ui_Label2;
+lv_obj_t *ui_TextAreaAppliancesWarning;
+lv_obj_t *ui_Label4;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
