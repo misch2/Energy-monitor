@@ -3081,7 +3081,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       30,
-                      10
+                      11
                     ],
                     "InheritedType": 7
                   },
@@ -3382,7 +3382,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       -50,
-                      10
+                      11
                     ],
                     "InheritedType": 7
                   },
@@ -3694,11 +3694,11 @@
                   },
                   {
                     "nid": -1385380272,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -4051,11 +4051,11 @@
                   },
                   {
                     "nid": 1380448349,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -4408,11 +4408,11 @@
                   },
                   {
                     "nid": 651985140,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -4765,11 +4765,11 @@
                   },
                   {
                     "nid": -873928737,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -4985,7 +4985,7 @@
                   {
                     "nid": 2024868579,
                     "strtype": "LABEL/Text",
-                    "strval": "Text",
+                    "strval": "b",
                     "InheritedType": 10
                   },
                   {
@@ -5122,11 +5122,11 @@
                   },
                   {
                     "nid": 470983281,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -5479,11 +5479,11 @@
                   },
                   {
                     "nid": 1608024604,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -5836,11 +5836,11 @@
                   },
                   {
                     "nid": 236112050,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -6193,11 +6193,11 @@
                   },
                   {
                     "nid": 1135689756,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -6413,7 +6413,7 @@
                   {
                     "nid": -559511348,
                     "strtype": "LABEL/Text",
-                    "strval": "Text",
+                    "strval": "a",
                     "InheritedType": 10
                   },
                   {
@@ -6550,11 +6550,11 @@
                   },
                   {
                     "nid": -1735935204,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -6770,7 +6770,7 @@
                   {
                     "nid": -836085104,
                     "strtype": "LABEL/Text",
-                    "strval": "Text",
+                    "strval": "c",
                     "InheritedType": 10
                   },
                   {
@@ -6907,11 +6907,11 @@
                   },
                   {
                     "nid": 1013714736,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -7264,11 +7264,11 @@
                   },
                   {
                     "nid": -1029233982,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -7621,11 +7621,11 @@
                   },
                   {
                     "nid": -941880451,
-                    "flags": 49,
+                    "flags": 17,
                     "strtype": "OBJECT/Size",
                     "intarray": [
                       150,
-                      1
+                      30
                     ],
                     "InheritedType": 7
                   },
@@ -8591,7 +8591,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  6
+                  2
                 ],
                 "InheritedType": 7
               },
@@ -8969,7 +8969,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  -124
+                  -128
                 ],
                 "InheritedType": 7
               },
@@ -9645,7 +9645,7 @@
                 "strtype": "OBJECT/Position",
                 "intarray": [
                   0,
-                  46
+                  36
                 ],
                 "InheritedType": 7
               },
@@ -9885,7 +9885,7 @@
                       {
                         "nid": 50041307,
                         "strtype": "_style/Text_Font",
-                        "strval": "Calibri32",
+                        "strval": "Calibri48",
                         "InheritedType": 3
                       }
                     ],
@@ -10310,7 +10310,7 @@
     "theme_color2": 0,
     "exportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
     "projectExportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
-    "backup_cnt": 158,
+    "backup_cnt": 162,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.6",
     "callfuncsexport": "CPP_FILE",

@@ -349,7 +349,6 @@ void setup() {
   ui_init();
 
   setLoadingScreenText("Connecting to WiFi");
-
 #ifdef USE_WIFI_MANAGER
   if (!wifiManager.getWiFiIsSaved()) {
     setLoadingScreenText("Starting WiFi AP!");
