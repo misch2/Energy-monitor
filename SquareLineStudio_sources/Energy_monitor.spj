@@ -7969,7 +7969,7 @@
                 "flags": 17,
                 "strtype": "OBJECT/Position",
                 "intarray": [
-                  -1,
+                  0,
                   0
                 ],
                 "InheritedType": 7
@@ -10310,7 +10310,7 @@
     "theme_color2": 0,
     "exportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
     "projectExportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
-    "backup_cnt": 173,
+    "backup_cnt": 174,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.6",
     "callfuncsexport": "CPP_FILE",

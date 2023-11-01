@@ -14,8 +14,6 @@ lv_obj_set_style_text_font(ui_WarningScreen, &ui_font_Calibri16, LV_PART_MAIN| L
 ui_PanelTopWarning = lv_obj_create(ui_WarningScreen);
 lv_obj_set_width( ui_PanelTopWarning, 320);
 lv_obj_set_height( ui_PanelTopWarning, 320);
-lv_obj_set_x( ui_PanelTopWarning, -1 );
-lv_obj_set_y( ui_PanelTopWarning, 0 );
 lv_obj_set_align( ui_PanelTopWarning, LV_ALIGN_TOP_MID );
 lv_obj_add_flag( ui_PanelTopWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
 lv_obj_clear_flag( ui_PanelTopWarning, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE );    /// Flags
