@@ -1,20 +1,24 @@
-#include "main.h"
-
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <Arduino_JSON.h>
 #include <Array.h>
 #include <CircularBuffer.h>
 #include <PubSubClient.h>
+#include <Syslog.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
 #include <Timemark.h>
 #include <WiFi.h>
+#ifdef USE_WIFI_MANAGER
 #include <WiFiManager.h>
+#endif
 #include <lvgl.h>
 
-#include "main.h"
+// this must be first, even before debug.h
 #include "secrets.h"
+// then everything else can be included
+#include "debug.h"
+#include "main.h"
 #include "ui/ui.h"
 
 #define LED_PIN_RED 4
@@ -41,7 +45,9 @@ static lv_color_t buf[screenWidth * screenHeight / 10];
 
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
+#ifdef USE_WIFI_MANAGER
 WiFiManager wifiManager;
+#endif
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
@@ -60,8 +66,7 @@ CircularBuffer<float, MAX_POWER_READINGS_BUFFER> powerReadingsBuffer;
 // void my_print( lv_log_level_t level, const char * buf )
 void my_print(const char* buf) {
   // LV_UNUSED(level);
-  Serial.println(buf);
-  Serial.flush();
+  DEBUG_PRINT(buf);
 }
 #endif
 
@@ -78,25 +83,6 @@ void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* c
   lv_disp_flush_ready(disp_drv);
 }
 
-// touch read:
-// tp.read();
-// if (tp.isTouched) {
-//   for (int i = 0; i < tp.touches; i++) {
-//     Serial.print("Touch ");
-//     Serial.print(i + 1);
-//     Serial.print(": ");
-//     ;
-//     Serial.print("  x: ");
-//     Serial.print(tp.points[i].x);
-//     Serial.print("  y: ");
-//     Serial.print(tp.points[i].y);
-//     Serial.print("  size: ");
-//     Serial.println(tp.points[i].size);
-//     Serial.println(' ');
-//   }
-// }
-
-/*Read the touchpad*/
 void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
   tp.read();
   bool touched = tp.isTouched && tp.touches == 1;  // allowing only single touch here
@@ -130,8 +116,7 @@ int backlight_on = 0;
 Timemark backlightTimeout(30000);  // in milliseconds
 
 void setBacklight(int on_off) {  // 0 - 255
-  Serial.print("Setting backlight to ");
-  Serial.println(on_off);
+  DEBUG_PRINT("Setting backlight to %d", on_off);
 
   if (on_off == 0) {
     ledcWrite(BL_LEDC_CHANNEL, 0);
@@ -196,19 +181,9 @@ void initLVGL() {
 void refresh_screen() { lv_timer_handler(); }
 
 void setLoadingScreenText(const char* text) {
-  Serial.println(text);
+  DEBUG_PRINT(text);
   lv_label_set_text(ui_LoadingLabel, text);
   refresh_screen();
-}
-
-static void event_handler(lv_event_t* e) {
-  lv_event_code_t code = lv_event_get_code(e);
-
-  if (code == LV_EVENT_CLICKED) {
-    Serial.println("Clicked");
-  } else if (code == LV_EVENT_VALUE_CHANGED) {
-    Serial.println("Toggled");
-  }
 }
 
 void handleMQTTMessageCurrentPower(String payloadString) {
@@ -257,10 +232,10 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   }
 
   if (applianceNames.size() == 0) {
-    // show green "OK" panel
+    // show the green "OK" panel
     lv_disp_load_scr(ui_OKScreen);
   } else {
-    // show red "Warning" panel
+    // show the red "Warning" panel
     lv_disp_load_scr(ui_WarningScreen);
     setBacklight(1);
     backlightTimeout.start();  // turn off backlight after 30 seconds
@@ -281,18 +256,14 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 }
 
 void handleMQTTMessageConfiguration(String payloadString) {
-  // parse the payload into JSON
-  Serial.println("Configuration received:");
-  Serial.println(payloadString);
-
   config = JSON.parse(payloadString);
   if (JSON.typeof(config) == "undefined") {
-    Serial.println("Parsing input failed!");
+    DEBUG_PRINT("Parsing input failed: %s", payloadString.c_str());
     return;
   }
 
-  Serial.println("Parsed configuration:");
-  Serial.println(JSON.stringify(config));
+  DEBUG_PRINT("Parsed configuration:");
+  DEBUG_PRINT(JSON.stringify(config).c_str());
 
   voltage = (int)config["electricity"]["meter"]["voltage"];
   maxCurrent = (int)config["electricity"]["meter"]["current"];
@@ -301,9 +272,9 @@ void handleMQTTMessageConfiguration(String payloadString) {
   lv_arc_set_range(ui_ArcCurrentWattsWarning, 0, limitWatts);
 
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
-  Serial.println("Subscribing to topic [" + mqttTopicCurrentPower + "]");
+  DEBUG_PRINT("Subscribing to topic [%s]", mqttTopicCurrentPower.c_str());
   bool ok = mqttClient.subscribe(mqttTopicCurrentPower.c_str());
-  // Serial.println(ok ? "Subscribed" : "Subscription failed");
+  // DEBUG_PRINT(ok ? "Subscribed" : "Subscription failed");
 }
 
 // handle message arrived
@@ -314,14 +285,14 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
     payloadString += (char)payload[i];
   }
 
-  // Serial.println("Message arrived on topic [" + topicString + "] Payload: [" + payloadString + "]");
+  // DEBUG_PRINT("Message arrived on topic [" + topicString + "] Payload: [" + payloadString + "]");
 
   if (topicString.equals(mqttTopicCurrentPower)) {
     handleMQTTMessageCurrentPower(payloadString);
   } else if (topicString.equals(MQTT_CONFIGURATION_TOPIC)) {
     handleMQTTMessageConfiguration(payloadString);
   } else {
-    Serial.println("Unknown topic [" + topicString + "]");
+    DEBUG_PRINT("Unknown topic [%s]", topicString.c_str());
   }
 }
 
@@ -336,17 +307,16 @@ void reconnectMQTT() {
   }
 
   while (!mqttClient.connected()) {
-    Serial.print("Attempting MQTT connection...");
+    DEBUG_PRINT("Attempting MQTT connection...");
     // Attempt to connect
     if (mqttClient.connect("EnergyMonitor/1.0", MQTT_USER, MQTT_PASSWORD)) {
-      Serial.println("connected");
-      Serial.println("Subscribing to topic [" + String(MQTT_CONFIGURATION_TOPIC) + "]");
+      DEBUG_PRINT("connected");
+      DEBUG_PRINT("Subscribing to topic [%s]", MQTT_CONFIGURATION_TOPIC);
       bool ok = mqttClient.subscribe(MQTT_CONFIGURATION_TOPIC);
-      // Serial.println(ok ? "Subscribed" : "Subscription failed");
+      // DEBUG_PRINT(ok ? "Subscribed" : "Subscription failed");
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
+      DEBUG_PRINT("failed, rc=%d", mqttClient.state());
+      DEBUG_PRINT(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -362,18 +332,31 @@ void setup() {
   ui_init();
 
   setLoadingScreenText("Connecting to WiFi");
-  // if (!wifiManager.getWiFiIsSaved()) {
-  //   setLoadingScreenText("Starting WiFi AP!");
-  // }
+
+#ifdef USE_WIFI_MANAGER
+  if (!wifiManager.getWiFiIsSaved()) {
+    setLoadingScreenText("Starting WiFi AP!");
+  }
   wifiManager.autoConnect();
+#else
+  WiFi.setHostname(NETWORK_HOSTNAME);
+  WiFi.config(NETWORK_IP_ADDRESS, NETWORK_IP_GATEWAY, NETWORK_IP_SUBNET, NETWORK_IP_DNS);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    refresh_screen();
+    delay(5);
+  }
+#endif
 
   setLoadingScreenText("Connecting to MQTT");
   initMQTT();
   reconnectMQTT();
 
   setLoadingScreenText("Enabling OTA");
-  // enable OTA
-  // ArduinoOTA.setHostname("esp32");
+// enable OTA
+#ifndef USE_WIFI_MANAGER
+  ArduinoOTA.setHostname(NETWORK_HOSTNAME);
+#endif
   ArduinoOTA.begin();
 
   setLoadingScreenText("Loading configuration");
@@ -388,7 +371,7 @@ void setup() {
   lv_disp_load_scr(ui_OKScreen);
   refresh_screen();
 
-  Serial.println("Setup done");
+  DEBUG_PRINT("Setup done");
 }
 
 void loop() {
