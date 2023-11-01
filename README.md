@@ -28,3 +28,5 @@ This value should account for a largest JSON config you're going to use.
 
 # Examples
 
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/bc73a087-413b-44f0-8ffa-ebcfaee5c718" width="250">
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/aca041fa-b3dc-45d0-a086-815e9758d6d3" width="250">
