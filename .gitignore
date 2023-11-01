@@ -8,4 +8,4 @@ client/.pio/
 client/src/ui/CMakeLists.txt
 client/src/ui/filelist.txt
 client/include/secrets.h
-examples/config.production.json
+local/
