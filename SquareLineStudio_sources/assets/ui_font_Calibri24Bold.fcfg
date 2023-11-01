@@ -1,0 +1,16 @@
+{
+  "codename": "Calibri24Bold",
+  "ttf_path": "\\assets\\calibrib.ttf",
+  "bin_path": "\\assets\\ui_font_Calibri24Bold.bin",
+  "c_path": "\\assets\\ui_font_Calibri24Bold.c",
+  "cfg_path": "\\assets\\ui_font_Calibri24Bold.fcfg",
+  "size": 24,
+  "bpp": 4,
+  "letters": 0,
+  "ranges": [
+    "0x20-0x7f"
+  ],
+  "symbols": "ěščřžýáíéúůĚŠČŘŽÝÁÍÉÚŮ",
+  "customparams": "--no-compress --no-prefilter",
+  "uploaded": false
+}

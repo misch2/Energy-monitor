@@ -70,6 +70,7 @@ extern lv_obj_t *ui____initial_actions0;
 LV_FONT_DECLARE( ui_font_Calibri16);
 LV_FONT_DECLARE( ui_font_Calibri32);
 LV_FONT_DECLARE( ui_font_Calibri48);
+LV_FONT_DECLARE( ui_font_Calibri24Bold);
 
 void ui_init(void);
 

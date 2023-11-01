@@ -3688,7 +3688,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       6,
-                      100
+                      94
                     ],
                     "InheritedType": 7
                   },
@@ -3908,13 +3908,13 @@
                   {
                     "nid": -226306910,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
                     "nid": 1367938059,
                     "strtype": "LABEL/Text",
-                    "strval": "Text",
+                    "strval": "Převaděč spojitosti",
                     "InheritedType": 10
                   },
                   {
@@ -3939,7 +3939,7 @@
                           {
                             "nid": -1100949827,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -3981,9 +3981,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -4045,7 +4045,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       6,
-                      135
+                      131
                     ],
                     "InheritedType": 7
                   },
@@ -4265,7 +4265,7 @@
                   {
                     "nid": -509898318,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -4296,7 +4296,7 @@
                           {
                             "nid": -351838140,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -4338,9 +4338,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -4402,7 +4402,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       6,
-                      170
+                      168
                     ],
                     "InheritedType": 7
                   },
@@ -4622,7 +4622,7 @@
                   {
                     "nid": 1985922962,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -4653,7 +4653,7 @@
                           {
                             "nid": 347054330,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -4695,9 +4695,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -4759,7 +4759,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       160,
-                      135
+                      131
                     ],
                     "InheritedType": 7
                   },
@@ -4979,7 +4979,7 @@
                   {
                     "nid": -259340640,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -5010,7 +5010,7 @@
                           {
                             "nid": -1089512408,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -5052,9 +5052,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -5336,7 +5336,7 @@
                   {
                     "nid": 198194314,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -5367,7 +5367,7 @@
                           {
                             "nid": -329484026,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -5409,9 +5409,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -5473,7 +5473,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       6,
-                      240
+                      242
                     ],
                     "InheritedType": 7
                   },
@@ -5693,7 +5693,7 @@
                   {
                     "nid": 744388257,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -5724,7 +5724,7 @@
                           {
                             "nid": 16181341,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -5766,9 +5766,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -5830,7 +5830,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       6,
-                      275
+                      279
                     ],
                     "InheritedType": 7
                   },
@@ -6050,7 +6050,7 @@
                   {
                     "nid": -885149012,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -6081,7 +6081,7 @@
                           {
                             "nid": 235043940,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -6123,9 +6123,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -6187,7 +6187,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       160,
-                      100
+                      94
                     ],
                     "InheritedType": 7
                   },
@@ -6407,13 +6407,13 @@
                   {
                     "nid": 970642196,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
                     "nid": -559511348,
                     "strtype": "LABEL/Text",
-                    "strval": "a",
+                    "strval": "Abcd",
                     "InheritedType": 10
                   },
                   {
@@ -6438,7 +6438,7 @@
                           {
                             "nid": -1560280580,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -6480,9 +6480,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -6544,7 +6544,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       160,
-                      170
+                      168
                     ],
                     "InheritedType": 7
                   },
@@ -6764,7 +6764,7 @@
                   {
                     "nid": -1593280358,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -6795,7 +6795,7 @@
                           {
                             "nid": 160815738,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -6837,9 +6837,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -7121,7 +7121,7 @@
                   {
                     "nid": -1595468538,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -7152,7 +7152,7 @@
                           {
                             "nid": 566791053,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -7194,9 +7194,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -7258,7 +7258,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       160,
-                      240
+                      242
                     ],
                     "InheritedType": 7
                   },
@@ -7478,7 +7478,7 @@
                   {
                     "nid": 814311759,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -7509,7 +7509,7 @@
                           {
                             "nid": -681372061,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -7551,9 +7551,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -7615,7 +7615,7 @@
                     "strtype": "OBJECT/Position",
                     "intarray": [
                       160,
-                      275
+                      279
                     ],
                     "InheritedType": 7
                   },
@@ -7835,7 +7835,7 @@
                   {
                     "nid": 1950929857,
                     "strtype": "LABEL/Long_mode",
-                    "strval": "WRAP",
+                    "strval": "DOT",
                     "InheritedType": 3
                   },
                   {
@@ -7866,7 +7866,7 @@
                           {
                             "nid": 2139149977,
                             "strtype": "_style/Text_Font",
-                            "strval": "Calibri16",
+                            "strval": "Calibri24Bold",
                             "InheritedType": 3
                           },
                           {
@@ -7908,9 +7908,9 @@
                             "strtype": "_style/Padding",
                             "intarray": [
                               10,
-                              5,
-                              2,
-                              2
+                              0,
+                              0,
+                              0
                             ],
                             "InheritedType": 7
                           }
@@ -10310,7 +10310,7 @@
     "theme_color2": 0,
     "exportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
     "projectExportFolderPath": "C:\\Users\\Michal\\Git\\my\\Energy monitor\\client\\src\\ui",
-    "backup_cnt": 162,
+    "backup_cnt": 173,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.6",
     "callfuncsexport": "CPP_FILE",
