@@ -30,5 +30,6 @@ This value should account for a largest JSON config you're going to use.
 
 # Examples
 
-![IMG_20231101_100221](https://github.com/misch2/Energy-monitor/assets/16558674/a893d8ec-f5e6-4d91-8adb-cf10c0dc8703)
-![IMG_20231101_100241](https://github.com/misch2/Energy-monitor/assets/16558674/406ddcb1-7218-4f55-a8d9-5e6aeceaf95d)
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/a893d8ec-f5e6-4d91-8adb-cf10c0dc8703" width="250">
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/406ddcb1-7218-4f55-a8d9-5e6aeceaf95d" width="250">
+
