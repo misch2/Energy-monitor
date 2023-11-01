@@ -186,7 +186,7 @@ void initLVGL() {
 void refresh_screen() { lv_timer_handler(); }
 
 void setLoadingScreenText(const char* text) {
-  DEBUG_PRINT(text);
+  // DEBUG_PRINT(text);
   lv_label_set_text(ui_LoadingLabel, text);
   refresh_screen();
 }
@@ -277,6 +277,7 @@ void handleMQTTMessageConfiguration(String payloadString) {
   config = JSON.parse(payloadString);
   if (JSON.typeof(config) == "undefined") {
     DEBUG_PRINT("Parsing input failed: %s", payloadString.c_str());
+    setLoadingScreenText("Invalid config!");
     return;
   }
 
@@ -292,7 +293,9 @@ void handleMQTTMessageConfiguration(String payloadString) {
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
   DEBUG_PRINT("Subscribing to topic [%s]", mqttTopicCurrentPower.c_str());
   bool ok = mqttClient.subscribe(mqttTopicCurrentPower.c_str());
-  // DEBUG_PRINT(ok ? "Subscribed" : "Subscription failed");
+  if (!ok) {
+    setLoadingScreenText("MQTT subscription failed!");
+  }
 }
 
 // handle message arrived
