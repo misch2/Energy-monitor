@@ -8,10 +8,10 @@ It automatically turns the display (backlight) off after 30 seconds but can be t
 
 # Compiling
 
-1. Create include/secrets.h (see `include/secrets.example.h` for an example).
+1. Create include/secrets.h (see the `client/include/secrets.example.h` for an example).
 1. Check the defines in platformio.ini and update them if needed (e.g. if you are using a different board or display).
 1. Build and upload the firmware to the board.
-1. Publish the configuration JSON to a retained MQTT topic defined in `secrets.h` (see above). I have used MQTT Explorer to do this. An example config can be found in `config.example.json`.
+1. Publish the configuration JSON to a retained MQTT topic defined in `secrets.h` (see above). I have used MQTT Explorer to do this. An example config can be found in `client/config.example.json`.
 1. Enjoy
 
 # Some details
