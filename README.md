@@ -4,7 +4,7 @@ A simple device created from an [ESP32 with 3.5" capacitive touch LCD](https://w
 
 The device subscribes to MQTT topic where Shelly publishes the current power consumption. It then displays the total consumption together with the remaining power available. If there are appliances defined with their power consumption then the device is able to display warning whenever the current consumption is approaching the limit and some of the appliances should not be turned on.
 
-It automatically turns the display (backlight) off after 30 seconds but can be turned on/off anytime by just touching it. In case of any warnings it turns on automatically. There is also a hysteresis for the 10-seconds maximum of power consumption implemented so that the warnings won't be flickering and constantly changing.
+It automatically turns the display (backlight) off after 30 seconds but can be turned on/off anytime by just touching it. In case of any warnings it turns on automatically. There is also a hysteresis implemented for the 10-seconds maximum of power consumption so that the warnings won't be flickering and constantly changing.
 
 # Compiling
 
