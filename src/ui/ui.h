@@ -34,14 +34,22 @@ void ui_OKScreen_screen_init(void);
 void ui_event_OKScreen( lv_event_t * e);
 extern lv_obj_t *ui_OKScreen;
 extern lv_obj_t *ui_PanelTopOK;
+extern lv_obj_t *ui_LabelRemainingWattsOK;
+extern lv_obj_t *ui_Label3;
+extern lv_obj_t *ui_ArcCurrentWattsOK;
+extern lv_obj_t *ui_LabelWattsUsedOK;
+extern lv_obj_t *ui_Label5;
+// SCREEN: ui_WarningScreen
+void ui_WarningScreen_screen_init(void);
+void ui_event_WarningScreen( lv_event_t * e);
+extern lv_obj_t *ui_WarningScreen;
 extern lv_obj_t *ui_PanelTopWarning;
 extern lv_obj_t *ui_TextAreaAppliancesWarning;
-extern lv_obj_t *ui_PanelTop;
-extern lv_obj_t *ui_LabelRezervaWattu;
-extern lv_obj_t *ui_Label3;
-extern lv_obj_t *ui_ArcCurrentWatts;
-extern lv_obj_t *ui_LabelWattsUsed;
-extern lv_obj_t *ui_Label5;
+extern lv_obj_t *ui_LabelRemainingWattsWarning;
+extern lv_obj_t *ui_Label1;
+extern lv_obj_t *ui_ArcCurrentWattsWarning;
+extern lv_obj_t *ui_LabelWattsUsedWarning;
+extern lv_obj_t *ui_Label2;
 extern lv_obj_t *ui____initial_actions0;
 
 

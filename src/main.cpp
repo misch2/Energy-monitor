@@ -141,9 +141,9 @@ void setBacklight(int on_off) {  // 0 - 255
   backlight_on = on_off;
 }
 
-void toggleBacklight() {
+void toggleBacklightManually() {
   setBacklight(!backlight_on);
-  backlightTimeout.stop();  // manual backlight control - disable auto-off
+  backlightTimeout.stop();
 }
 
 void initBacklight() {
@@ -152,6 +152,7 @@ void initBacklight() {
   ledcAttachPin(BL_LEDC_PIN, BL_LEDC_CHANNEL);
   ledcSetup(BL_LEDC_CHANNEL, 5000, 8);
   setBacklight(1);
+  backlightTimeout.start();  // turn off backlight after 30 seconds
 }
 
 void initDisplay() {
@@ -225,17 +226,21 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   float remainingWatts = limitWatts - filteredCurrentWatts;       // time filtered and rounded down value for the warning message, to prevent flickering
   int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;  // round down to multiples of 50
 
-  lv_arc_set_value(ui_ArcCurrentWatts, currentWatts);  // non-filtered and more precise value for the gauge
+  // non-filtered and more precise value for the gauge
+  lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
+  lv_arc_set_value(ui_ArcCurrentWattsWarning, currentWatts);
 
   String label = "";
   label += displayedRemainingWatts;
   label += " W";
-  lv_label_set_text(ui_LabelRezervaWattu, label.c_str());
+  lv_label_set_text(ui_LabelRemainingWattsOK, label.c_str());
+  lv_label_set_text(ui_LabelRemainingWattsWarning, label.c_str());
 
   label = "";
   label += (int)(currentWatts);
   label += " W";
-  lv_label_set_text(ui_LabelWattsUsed, label.c_str());
+  lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
+  lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
 
   // Compare displayedRemainingWatts with array of config["electricity"]["appliances"]
   const int MAX_APPLIANCES = 100;
@@ -253,14 +258,12 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 
   if (applianceNames.size() == 0) {
     // show green "OK" panel
-    lv_obj_add_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
+    lv_disp_load_scr(ui_OKScreen);
   } else {
     // show red "Warning" panel
+    lv_disp_load_scr(ui_WarningScreen);
     setBacklight(1);
     backlightTimeout.start();  // turn off backlight after 30 seconds
-    lv_obj_add_flag(ui_PanelTopOK, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(ui_PanelTopWarning, LV_OBJ_FLAG_HIDDEN);
 
     String warning = "Nezapínej ";
     for (int i = 0; i < applianceNames.size() - 1; i++) {
@@ -294,7 +297,8 @@ void handleMQTTMessageConfiguration(String payloadString) {
   voltage = (int)config["electricity"]["meter"]["voltage"];
   maxCurrent = (int)config["electricity"]["meter"]["current"];
   limitWatts = voltage * maxCurrent;
-  lv_arc_set_range(ui_ArcCurrentWatts, 0, limitWatts);
+  lv_arc_set_range(ui_ArcCurrentWattsOK, 0, limitWatts);
+  lv_arc_set_range(ui_ArcCurrentWattsWarning, 0, limitWatts);
 
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
   Serial.println("Subscribing to topic [" + mqttTopicCurrentPower + "]");

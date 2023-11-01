@@ -21,14 +21,24 @@ void ui_OKScreen_screen_init(void);
 void ui_event_OKScreen( lv_event_t * e);
 lv_obj_t *ui_OKScreen;
 lv_obj_t *ui_PanelTopOK;
+lv_obj_t *ui_LabelRemainingWattsOK;
+lv_obj_t *ui_Label3;
+lv_obj_t *ui_ArcCurrentWattsOK;
+lv_obj_t *ui_LabelWattsUsedOK;
+lv_obj_t *ui_Label5;
+
+
+// SCREEN: ui_WarningScreen
+void ui_WarningScreen_screen_init(void);
+void ui_event_WarningScreen( lv_event_t * e);
+lv_obj_t *ui_WarningScreen;
 lv_obj_t *ui_PanelTopWarning;
 lv_obj_t *ui_TextAreaAppliancesWarning;
-lv_obj_t *ui_PanelTop;
-lv_obj_t *ui_LabelRezervaWattu;
-lv_obj_t *ui_Label3;
-lv_obj_t *ui_ArcCurrentWatts;
-lv_obj_t *ui_LabelWattsUsed;
-lv_obj_t *ui_Label5;
+lv_obj_t *ui_LabelRemainingWattsWarning;
+lv_obj_t *ui_Label1;
+lv_obj_t *ui_ArcCurrentWattsWarning;
+lv_obj_t *ui_LabelWattsUsedWarning;
+lv_obj_t *ui_Label2;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -48,6 +58,12 @@ if ( event_code == LV_EVENT_CLICKED) {
       ui_toggleBacklight( e );
 }
 }
+void ui_event_WarningScreen( lv_event_t * e) {
+    lv_event_code_t event_code = lv_event_get_code(e);lv_obj_t * target = lv_event_get_target(e);
+if ( event_code == LV_EVENT_CLICKED) {
+      ui_toggleBacklight( e );
+}
+}
 
 ///////////////////// SCREENS ////////////////////
 
@@ -58,6 +74,7 @@ lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE
 lv_disp_set_theme(dispp, theme);
 ui_LoadingScreen_screen_init();
 ui_OKScreen_screen_init();
+ui_WarningScreen_screen_init();
 ui____initial_actions0 = lv_obj_create(NULL);
 lv_disp_load_scr( ui_LoadingScreen);
 }

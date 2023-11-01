@@ -1,0 +1,41 @@
+{
+    "topics": {
+        "current_power": "shellies/shellyem-01/emeter/0/power"
+    },
+    "electricity": {
+        "meter": {
+            "current": 25,
+            "voltage": 230
+        },
+        "appliances": [
+            {
+                "power": 2990,
+                "name": {
+                    "nominative": "trouba",
+                    "accusative": "troubu"
+                }
+            },
+            {
+                "power": 2400,
+                "name": {
+                    "nominative": "myčka",
+                    "accusative": "myčku"
+                }
+            },
+            {
+                "power": 2000,
+                "name": {
+                    "nominative": "mikrovlnka",
+                    "accusative": "mikrovlnku"
+                }
+            },
+            {
+                "power": 2100,
+                "name": {
+                    "nominative": "pračka",
+                    "accusative": "pračku"
+                }
+            }
+        ]
+    }
+}

@@ -8,5 +8,5 @@
 
 void ui_toggleBacklight(lv_event_t * e)
 {
-	toggleBacklight();
+	toggleBacklightManually();
 }
