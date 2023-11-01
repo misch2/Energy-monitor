@@ -1,5 +1,8 @@
 # Energy monitor
 
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/e00ca47c-de77-4387-88d9-d7293dbf7d3d" width="250">
+<img src="https://github.com/misch2/Energy-monitor/assets/16558674/7e6d5f3c-2ffe-474d-a688-5506f240db03" width="250">
+
 A simple device created from an [ESP32 with 3.5" capacitive touch LCD](https://www.aliexpress.com/item/1005004632953455.html?spm=a2g0o.order_list.order_list_main.66.858e1802IwIcM3) using [Shelly EM](https://www.shelly.com/en/products/shop/shelly-em-120a/shelly-em-50a) as a power meter. 
 
 The device subscribes to MQTT topic where Shelly publishes the current power consumption. It then displays the total consumption together with the remaining power available. If there are appliances defined with their power consumption then the device is able to display warning whenever the current consumption is approaching the limit and some of the appliances should not be turned on.
@@ -27,9 +30,4 @@ The configuration topic should always be published as "retained" so that the con
 This value should account for a largest JSON config you're going to use. 
 
 > ⚠️ If the device gets seemingly stuck at the "Loading config" screen then this value is probably set too small and the PubSubClient library is skipping the MQTT message silently as it's too large. 
-
-# Examples
-
-<img src="https://github.com/misch2/Energy-monitor/assets/16558674/a893d8ec-f5e6-4d91-8adb-cf10c0dc8703" width="250">
-<img src="https://github.com/misch2/Energy-monitor/assets/16558674/406ddcb1-7218-4f55-a8d9-5e6aeceaf95d" width="250">
 
