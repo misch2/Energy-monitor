@@ -12,6 +12,8 @@
 #ifdef USE_WIFI_MANAGER
 #include <WiFiManager.h>
 #endif
+
+#include "lv_conf.h"
 #include <lvgl.h>
 
 // this must be first, even before debug.h
@@ -214,6 +216,21 @@ bool showApplianceLabel(lv_obj_t* ui_element, JSONVar appliances, int number, in
   return true;
 }
 
+
+/* FIXME current_power:
+lv_label_set_text(ui_Label3, config["display"]["current_power"]["name"].as<char*>()]);
+lv_label_set_text(ui_Label2,dtto)
+
+Dtto for remaining_power
+
+
+unit
+name
+round_to_multiple_of
+
+
+*/
+
 void handleMQTTMessageCurrentPower(String payloadString) {
   float currentWatts = payloadString.toFloat();
 
@@ -247,7 +264,8 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 
   JSONVar appliances = config["electricity"]["appliances"];
   if (appliances.length() > MAX_APPLIANCES) {
-    DEBUG_PRINT("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
+    // DEBUG_PRINT("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
+    // The total number of appliances is not an issue. It would be a problem only if all of them should be displayed at the same time.
   }
 
   bool displayed_warning = false;
