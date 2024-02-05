@@ -1,20 +1,24 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <Arduino_JSON.h>
+// #include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #include <Array.h>
-#include <CircularBuffer.h>
 #include <PubSubClient.h>
 #include <Syslog.h>
 #include <TAMC_GT911.h>
 #include <TFT_eSPI.h>
 #include <Timemark.h>
 #include <WiFi.h>
+
+#include <CircularBuffer.hpp>
 #ifdef USE_WIFI_MANAGER
 #include <WiFiManager.h>
 #endif
 
+// clang-format off
 #include "lv_conf.h"
 #include <lvgl.h>
+// clang-format on
 
 // this must be first, even before debug.h
 #include "secrets.h"
@@ -55,7 +59,7 @@ WiFiManager wifiManager;
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-JSONVar config;
+JsonDocument config;
 // parsed values from config
 String mqttTopicCurrentPower = "";
 int voltage = 0;
@@ -118,6 +122,7 @@ void turnOffAllLEDs() {
 
 int backlight_on = 0;
 Timemark backlightTimeout(30000);  // in milliseconds
+Timemark mqttTimeout(15000);       // in milliseconds
 
 void setBacklight(int on_off) {  // 0 - 255
   if (backlight_on == on_off) {
@@ -134,6 +139,7 @@ void setBacklight(int on_off) {  // 0 - 255
 }
 
 void toggleBacklightManually() {
+  DEBUG_PRINT("Setting backlight manually to %d", !backlight_on);
   setBacklight(!backlight_on);
   backlightTimeout.stop();
 }
@@ -188,20 +194,21 @@ void initLVGL() {
 void refresh_screen() { lv_timer_handler(); }
 
 void setLoadingScreenText(const char* text) {
-  // DEBUG_PRINT(text);
+  DEBUG_PRINT(text);
   lv_label_set_text(ui_LoadingLabel, text);
   refresh_screen();
 }
 
-bool showApplianceLabel(lv_obj_t* ui_element, JSONVar appliances, int number, int remainingWatts) {
+bool showApplianceLabel(lv_obj_t* ui_element, JsonArray appliances, int number, int remainingWatts) {
   // DEBUG_PRINT("in showApplianceLabel(%d, %d)", number, remainingWatts);
-  if (number > appliances.length()) {
+
+  if (number > appliances.size()) {
     // DEBUG_PRINT("Appliance #%d not found in config, skipping this label", number);
     lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
     return false;
   }
 
-  JSONVar appliance = appliances[number - 1];
+  JsonVariant appliance = appliances[number - 1];
   if (remainingWatts > (int)appliance["power"]) {
     // DEBUG_PRINT("Appliance %d compliant, remainingWatts %d > %d, skipping this label", number, remainingWatts, (int)appliance["power"]);
     lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
@@ -215,7 +222,6 @@ bool showApplianceLabel(lv_obj_t* ui_element, JSONVar appliances, int number, in
 
   return true;
 }
-
 
 /* FIXME current_power:
 lv_label_set_text(ui_Label3, config["display"]["current_power"]["name"].as<char*>()]);
@@ -262,8 +268,8 @@ void handleMQTTMessageCurrentPower(String payloadString) {
   lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
   lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
 
-  JSONVar appliances = config["electricity"]["appliances"];
-  if (appliances.length() > MAX_APPLIANCES) {
+  JsonArray appliances = config["electricity"]["appliances"].as<JsonArray>();
+  if (appliances.size() > MAX_APPLIANCES) {
     // DEBUG_PRINT("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
     // The total number of appliances is not an issue. It would be a problem only if all of them should be displayed at the same time.
   }
@@ -292,15 +298,17 @@ void handleMQTTMessageCurrentPower(String payloadString) {
 }
 
 void handleMQTTMessageConfiguration(String payloadString) {
-  config = JSON.parse(payloadString);
-  if (JSON.typeof(config) == "undefined") {
-    DEBUG_PRINT("Parsing input failed: %s", payloadString.c_str());
+  DeserializationError error = deserializeJson(config, payloadString);
+  if (error) {
+    DEBUG_PRINT("Parsing input failed: %s", error.c_str());
     setLoadingScreenText("Invalid config!");
     return;
   }
 
   DEBUG_PRINT("Parsed configuration:");
-  DEBUG_PRINT(JSON.stringify(config).c_str());
+  String tmp = "";
+  serializeJsonPretty(config, tmp);
+  DEBUG_PRINT(tmp.c_str());
 
   voltage = (int)config["electricity"]["meter"]["voltage"];
   maxCurrent = (int)config["electricity"]["meter"]["current"];
@@ -309,7 +317,7 @@ void handleMQTTMessageConfiguration(String payloadString) {
   lv_arc_set_range(ui_ArcCurrentWattsWarning, 0, limitWatts);
 
   mqttTopicCurrentPower = (const char*)config["topics"]["current_power"];
-  DEBUG_PRINT("Subscribing to topic [%s]", mqttTopicCurrentPower.c_str());
+  DEBUG_PRINT("Subscribing to power meter topic [%s]", mqttTopicCurrentPower.c_str());
   bool ok = mqttClient.subscribe(mqttTopicCurrentPower.c_str());
   if (!ok) {
     setLoadingScreenText("MQTT subscription failed!");
@@ -333,6 +341,8 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
   } else {
     DEBUG_PRINT("Unknown topic [%s]", topicString.c_str());
   }
+
+  mqttTimeout.start();  // reset the timeout
 }
 
 void initMQTT() {
@@ -350,7 +360,7 @@ void reconnectMQTT() {
     // Attempt to connect
     if (mqttClient.connect("EnergyMonitor/1.0", MQTT_USER, MQTT_PASSWORD)) {
       DEBUG_PRINT(" - connected");
-      DEBUG_PRINT("Subscribing to topic [%s]", MQTT_CONFIGURATION_TOPIC);
+      DEBUG_PRINT("Subscribing to configuration topic [%s]", MQTT_CONFIGURATION_TOPIC);
       bool ok = mqttClient.subscribe(MQTT_CONFIGURATION_TOPIC);
       // DEBUG_PRINT(ok ? "Subscribed" : "Subscription failed");
     } else {
@@ -359,6 +369,8 @@ void reconnectMQTT() {
       delay(5000);
     }
   }
+
+  mqttTimeout.start();
 }
 
 void setup() {
@@ -369,7 +381,15 @@ void setup() {
   initLVGL();
   ui_init();
 
+  DEBUG_PRINT("a");
+  delay(2000);
   setLoadingScreenText("Connecting to WiFi");
+  delay(2000);
+  DEBUG_PRINT("b");
+  setLoadingScreenText("Foobar");
+  delay(2000);
+  return;
+
 #ifdef USE_WIFI_MANAGER
   if (!wifiManager.getWiFiIsSaved()) {
     setLoadingScreenText("Starting WiFi AP!");
@@ -386,10 +406,12 @@ void setup() {
 #endif
 
   setLoadingScreenText("Connecting to MQTT");
+  delay(1000);
   initMQTT();
   reconnectMQTT();
 
   setLoadingScreenText("Enabling OTA");
+  delay(1000);
 // enable OTA
 #ifndef USE_WIFI_MANAGER
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
@@ -397,26 +419,40 @@ void setup() {
   ArduinoOTA.begin();
 
   setLoadingScreenText("Loading configuration");
+  delay(1000);
   while (mqttTopicCurrentPower == "") {
     loop();
   }
 
-  // setLoadingScreenText("Initialization done");
-  // delay(1000);
+  setLoadingScreenText("Initialization done");
+  delay(1000);
 
   handleMQTTMessageCurrentPower("0");
   lv_disp_load_scr(ui_OKScreen);
   refresh_screen();
 
-  DEBUG_PRINT("Setup done");
+  DEBUG_PRINT("Setup done, version %s", VERSION);
+  delay(1000);
 }
 
 void loop() {
+  refresh_screen();
+  delay(5);
+  return;
+
   ArduinoOTA.handle();
   mqttClient.loop();
   if (backlightTimeout.expired()) {
     setBacklight(0);
     backlightTimeout.stop();
+  }
+  if (mqttTimeout.expired()) {
+    // DEBUG_PRINT("MQTT timeout, reconnecting");
+    // mqttClient.disconnect();
+    // mqttTimeout.stop();
+    // reconnectMQTT();
+    DEBUG_PRINT("MQTT timeout, rebooting");
+    ESP.restart();
   }
   refresh_screen();
   delay(5);
