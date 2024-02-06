@@ -49,7 +49,8 @@ static const uint16_t screenWidth = 320;
 static const uint16_t screenHeight = 480;
 
 static lv_disp_draw_buf_t draw_buf;
-static lv_color_t buf[screenWidth * screenHeight / 10];
+#define DRAW_BUF_SIZE (screenWidth * screenHeight / 10)
+static lv_color_t buf[DRAW_BUF_SIZE];
 
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
@@ -83,6 +84,7 @@ void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* c
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
 
+  // DEBUG_PRINT("Flushing area: x1=%d, y1=%d, x2=%d, y2=%d, w=%d, h=%d", area->x1, area->y1, area->x2, area->y2, w, h);
   tft.startWrite();
   tft.setAddrWindow(area->x1, area->y1, w, h);
   tft.pushColors((uint16_t*)&color_p->full, w * h, true);
@@ -171,9 +173,10 @@ void initLVGL() {
   tft.begin(); /* TFT init */
   tft.setRotation(ROTATE_TFT);
 
-  lv_disp_draw_buf_init(&draw_buf, buf, NULL, screenWidth * screenHeight / 10);
+  /* Buffer to draw to */
+  lv_disp_draw_buf_init(&draw_buf, buf, NULL, DRAW_BUF_SIZE);
 
-  /*Initialize the display*/
+  /* Driver definition */
   static lv_disp_drv_t disp_drv;
   lv_disp_drv_init(&disp_drv);
   /*Change the following line to your display resolution*/
@@ -191,7 +194,13 @@ void initLVGL() {
   lv_indev_drv_register(&indev_drv);
 }
 
-void refresh_screen() { lv_timer_handler(); }
+void refresh_screen() {
+  // LV_TICK_CUSTOM in lvgl.h doesn't work for some reason, neither as Arduino nor as ESP-IDF.
+  // Therefore this hack:
+  lv_tick_inc(max(LV_DISP_DEF_REFR_PERIOD, LV_INDEV_DEF_READ_PERIOD));
+
+  lv_timer_handler();
+}
 
 void setLoadingScreenText(const char* text) {
   DEBUG_PRINT(text);
@@ -373,6 +382,50 @@ void reconnectMQTT() {
   mqttTimeout.start();
 }
 
+void test1() {
+  DEBUG_PRINT("here 1");
+  lv_disp_load_scr(ui_OKScreen);
+  refresh_screen();
+  // DEBUG_PRINT("a");
+  delay(2000);
+
+  DEBUG_PRINT("here 2");
+  lv_disp_load_scr(ui_WarningScreen);
+  refresh_screen();
+  lv_timer_handler();
+  delay(2000);
+
+  DEBUG_PRINT("here 3");
+  setLoadingScreenText("Random text");
+  delay(2000);
+
+  DEBUG_PRINT("here 4");
+  setLoadingScreenText("Foobar");
+  delay(2000);
+
+  DEBUG_PRINT("end");
+}
+
+void test2() {
+  DEBUG_PRINT("initDisplay");
+  initDisplay();
+  DEBUG_PRINT("initLVGL");
+  initLVGL();
+  DEBUG_PRINT("ui_init");
+  ui_init();
+  DEBUG_PRINT("initDisplay done, entering infinite loop");
+  for (int i = 0; i < 10000; i++) {
+    DEBUG_PRINT("in the loop, i=%d", i);
+    lv_disp_load_scr(ui_OKScreen);
+    lv_label_set_text(ui_LabelRemainingWattsOK, i % 2 == 0 ? "even" : "odd");
+    refresh_screen();
+    delay(2000);
+    lv_disp_load_scr(ui_WarningScreen);
+    refresh_screen();
+    delay(2000);
+  }
+}
+
 void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
@@ -381,14 +434,7 @@ void setup() {
   initLVGL();
   ui_init();
 
-  DEBUG_PRINT("a");
-  delay(2000);
   setLoadingScreenText("Connecting to WiFi");
-  delay(2000);
-  DEBUG_PRINT("b");
-  setLoadingScreenText("Foobar");
-  delay(2000);
-  return;
 
 #ifdef USE_WIFI_MANAGER
   if (!wifiManager.getWiFiIsSaved()) {
@@ -406,12 +452,10 @@ void setup() {
 #endif
 
   setLoadingScreenText("Connecting to MQTT");
-  delay(1000);
   initMQTT();
   reconnectMQTT();
 
   setLoadingScreenText("Enabling OTA");
-  delay(1000);
 // enable OTA
 #ifndef USE_WIFI_MANAGER
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
@@ -419,27 +463,20 @@ void setup() {
   ArduinoOTA.begin();
 
   setLoadingScreenText("Loading configuration");
-  delay(1000);
   while (mqttTopicCurrentPower == "") {
     loop();
   }
 
   setLoadingScreenText("Initialization done");
-  delay(1000);
 
   handleMQTTMessageCurrentPower("0");
   lv_disp_load_scr(ui_OKScreen);
   refresh_screen();
 
   DEBUG_PRINT("Setup done, version %s", VERSION);
-  delay(1000);
 }
 
 void loop() {
-  refresh_screen();
-  delay(5);
-  return;
-
   ArduinoOTA.handle();
   mqttClient.loop();
   if (backlightTimeout.expired()) {
