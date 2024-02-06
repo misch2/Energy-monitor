@@ -34,6 +34,9 @@
 #define BL_LEDC_PIN 27
 #define BL_LEDC_CHANNEL 0
 
+#define SECONDS_TO_MILLIS 1000
+#define MILLIS 1
+
 // landscape, USB on the right
 // #define ROTATE_TFT 1
 // #define ROTATE_TOUCH ROTATION_RIGHT
@@ -123,8 +126,8 @@ void turnOffAllLEDs() {
 }
 
 int backlight_on = 0;
-Timemark backlightTimeout(30000);  // in milliseconds
-Timemark mqttTimeout(15000);       // in milliseconds
+Timemark backlightTimeout(30 * SECONDS_TO_MILLIS);
+Timemark mqttTimeout(60 * SECONDS_TO_MILLIS);
 
 void setBacklight(int on_off) {  // 0 - 255
   if (backlight_on == on_off) {
@@ -194,11 +197,23 @@ void initLVGL() {
   lv_indev_drv_register(&indev_drv);
 }
 
-void refresh_screen() {
+unsigned long last_millis = millis();
+void refresh_lv_tick_value() {
   // LV_TICK_CUSTOM in lvgl.h doesn't work for some reason, neither as Arduino nor as ESP-IDF.
   // Therefore this hack:
-  lv_tick_inc(max(LV_DISP_DEF_REFR_PERIOD, LV_INDEV_DEF_READ_PERIOD));
+  // lv_tick_inc(max(LV_DISP_DEF_REFR_PERIOD, LV_INDEV_DEF_READ_PERIOD));
+  unsigned long now = millis();
+  if (now < last_millis) {  // overflow
+    last_millis = now;
+    lv_tick_inc(1 * SECONDS_TO_MILLIS);
+  } else {  // increment
+    lv_tick_inc(now - last_millis);
+    last_millis = now;
+  }
+}
 
+void refresh_screen() {
+  refresh_lv_tick_value();
   lv_timer_handler();
 }
 
@@ -375,7 +390,7 @@ void reconnectMQTT() {
     } else {
       DEBUG_PRINT(" - failed, rc=%d", mqttClient.state());
       DEBUG_PRINT(" - trying again in 5 seconds");
-      delay(5000);
+      delay(5 * SECONDS_TO_MILLIS);
     }
   }
 
@@ -387,21 +402,21 @@ void test1() {
   lv_disp_load_scr(ui_OKScreen);
   refresh_screen();
   // DEBUG_PRINT("a");
-  delay(2000);
+  delay(2 * SECONDS_TO_MILLIS);
 
   DEBUG_PRINT("here 2");
   lv_disp_load_scr(ui_WarningScreen);
   refresh_screen();
   lv_timer_handler();
-  delay(2000);
+  delay(2 * SECONDS_TO_MILLIS);
 
   DEBUG_PRINT("here 3");
   setLoadingScreenText("Random text");
-  delay(2000);
+  delay(2 * SECONDS_TO_MILLIS);
 
   DEBUG_PRINT("here 4");
   setLoadingScreenText("Foobar");
-  delay(2000);
+  delay(2 * SECONDS_TO_MILLIS);
 
   DEBUG_PRINT("end");
 }
@@ -419,10 +434,10 @@ void test2() {
     lv_disp_load_scr(ui_OKScreen);
     lv_label_set_text(ui_LabelRemainingWattsOK, i % 2 == 0 ? "even" : "odd");
     refresh_screen();
-    delay(2000);
+    delay(2 * SECONDS_TO_MILLIS);
     lv_disp_load_scr(ui_WarningScreen);
     refresh_screen();
-    delay(2000);
+    delay(2 * SECONDS_TO_MILLIS);
   }
 }
 
@@ -447,7 +462,7 @@ void setup() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     refresh_screen();
-    delay(5);
+    delay(5 * MILLIS);
   }
 #endif
 
@@ -488,9 +503,11 @@ void loop() {
     // mqttClient.disconnect();
     // mqttTimeout.stop();
     // reconnectMQTT();
-    DEBUG_PRINT("MQTT timeout, rebooting");
+    DEBUG_PRINT("No MQTT message arrived for %d s, rebooting after 60 seconds", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS);
+    delay(60 * SECONDS_TO_MILLIS);
+    DEBUG_PRINT("rebooting now");
     ESP.restart();
   }
   refresh_screen();
-  delay(5);
+  delay(5 * MILLIS);
 }
