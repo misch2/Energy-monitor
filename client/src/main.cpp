@@ -134,7 +134,7 @@ void setBacklight(int on_off) {  // 0 - 255
     return;
   }
 
-  DEBUG_PRINT("Setting backlight to %d", on_off);
+  // DEBUG_PRINT("Setting backlight to %d", on_off);
   if (on_off == 0) {
     ledcWrite(BL_LEDC_CHANNEL, 0);
   } else {
@@ -144,7 +144,7 @@ void setBacklight(int on_off) {  // 0 - 255
 }
 
 void toggleBacklightManually() {
-  DEBUG_PRINT("Setting backlight manually to %d", !backlight_on);
+  // DEBUG_PRINT("Setting backlight manually to %d", !backlight_on);
   setBacklight(!backlight_on);
   backlightTimeout.stop();
 }
