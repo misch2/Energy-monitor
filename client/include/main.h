@@ -1,4 +1,4 @@
-#define VERSION "20240205.1"
+#define VERSION "20240209.4"
 
 void toggleBacklightManually();
 void loop();
