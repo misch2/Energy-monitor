@@ -141,6 +141,14 @@ void publish_homeassistant_value_backlight(int on_off) {
                               "measurement", "", "mdi:lightbulb");
 }
 
+void publish_homeassistant_value_warningstate(int on_off) {
+  publish_homeassistant_value("binary_sensor", MQTT_HA_DEVICENAME, "warning", on_off ? "ON" : "OFF", "diagnostic",
+                              "power", /* one of 'battery', 'battery_charging', 'carbon_monoxide', 'cold', 'connectivity', 'door', 'garage_door', 'gas', 'heat',
+                                          'light', 'lock', 'moisture', 'motion', 'moving', 'occupancy', 'opening', 'plug', 'power', 'presence', 'problem',
+                                          'running', 'safety', 'smoke', 'sound', 'tamper', 'update', 'vibration', 'window' */
+                              "measurement", "", "mdi:power-socket-eu");
+}
+
 long last_uptime = 0;
 void publish_homeassistant_value_uptime() {
   long uptime = millis() / 1000;
@@ -386,8 +394,10 @@ void handleMQTTMessageCurrentPower(String payloadString) {
     lv_disp_load_scr(ui_WarningScreen);
     setBacklight(1);
     backlightTimeout.start();  // turn off backlight after 30 seconds
+    publish_homeassistant_value_warningstate(1);
   } else {
     lv_disp_load_scr(ui_OKScreen);
+    publish_homeassistant_value_warningstate(0);
   }
 }
 
@@ -550,6 +560,7 @@ void setup() {
   setLoadingScreenText("Publishing HA topics");
   publish_homeassistant_value_backlight(0);
   publish_homeassistant_value_uptime();
+  publish_homeassistant_value_warningstate(0);
 
   setLoadingScreenText("Loading configuration");
   while (mqttTopicCurrentPower == "") {
