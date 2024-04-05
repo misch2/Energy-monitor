@@ -1,8 +1,8 @@
 // this must be first, even before debug.h
-#include "secrets.h"
-
 #include <Arduino.h>
 #include <ArduinoOTA.h>
+
+#include "secrets.h"
 // #include <Arduino_JSON.h>
 #include <ArduinoJson.h>
 #include <Array.h>
@@ -548,7 +548,7 @@ void setup() {
   reconnectMQTT();
 
   setLoadingScreenText("Enabling OTA");
-// enable OTA
+  // enable OTA
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
   ArduinoOTA.begin();
   ArduinoOTA.onStart([]() { DEBUG_PRINT("OTA Start"); });
@@ -584,16 +584,18 @@ void loop() {
     // DEBUG_PRINT("MQTT timeout, reconnecting");
     // mqttClient.disconnect();
     // mqttTimeout.stop();
-    // reconnectMQTT();
-    DEBUG_PRINT("No MQTT message arrived for %d s, rebooting after 60 seconds", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS);
+    DEBUG_PRINT("No MQTT message arrived for %d s, connected=%d, state=%d", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS, mqttClient.connected(),
+                mqttClient.state());
 
-    DEBUG_PRINT("MQTT state: %d", mqttClient.state());
-    DEBUG_PRINT("MQTT connected: %d", mqttClient.connected());
-    DEBUG_PRINT("WiFi state: %d", WiFi.status());
-
-    delay(60 * SECONDS_TO_MILLIS);
-    DEBUG_PRINT("rebooting now");
-    ESP.restart();
+    if (WiFi.status() == WL_CONNECTED && !mqttClient.connected()) {
+      DEBUG_PRINT("MQTT not connected, reconnecting");
+      reconnectMQTT();
+    } else {
+      DEBUG_PRINT("Fully rebooting after 60 seconds", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS);
+      delay(60 * SECONDS_TO_MILLIS);
+      DEBUG_PRINT("rebooting now");
+      ESP.restart();
+    }
   }
   refresh_screen();
   publish_homeassistant_value_uptime(false);
