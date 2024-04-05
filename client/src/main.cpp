@@ -405,10 +405,10 @@ void handleMQTTMessageConfiguration(String payloadString) {
     return;
   }
 
-  DEBUG_PRINT("Parsed configuration:");
-  String tmp = "";
-  serializeJsonPretty(config, tmp);
-  DEBUG_PRINT(tmp.c_str());
+  // DEBUG_PRINT("Parsed configuration:");
+  // String tmp = "";
+  // serializeJsonPretty(config, tmp);
+  // DEBUG_PRINT(tmp.c_str());
 
   voltage = (int)config["electricity"]["meter"]["voltage"];
   maxCurrent = (int)config["electricity"]["meter"]["current"];
@@ -551,6 +551,8 @@ void setup() {
 // enable OTA
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
   ArduinoOTA.begin();
+  ArduinoOTA.onStart([]() { DEBUG_PRINT("OTA Start"); });
+  ArduinoOTA.onEnd([]() { DEBUG_PRINT("OTA End"); });
 
   setLoadingScreenText("Publishing HA MQTT config");
   publish_homeassistant_value_backlight(true, 0);
@@ -584,6 +586,11 @@ void loop() {
     // mqttTimeout.stop();
     // reconnectMQTT();
     DEBUG_PRINT("No MQTT message arrived for %d s, rebooting after 60 seconds", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS);
+
+    DEBUG_PRINT("MQTT state: %d", mqttClient.state());
+    DEBUG_PRINT("MQTT connected: %d", mqttClient.connected());
+    DEBUG_PRINT("WiFi state: %d", WiFi.status());
+
     delay(60 * SECONDS_TO_MILLIS);
     DEBUG_PRINT("rebooting now");
     ESP.restart();
