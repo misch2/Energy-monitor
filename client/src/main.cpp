@@ -1,3 +1,6 @@
+// this must be first, even before debug.h
+#include "secrets.h"
+
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 // #include <Arduino_JSON.h>
@@ -20,8 +23,6 @@
 #include <lvgl.h>
 // clang-format on
 
-// this must be first, even before debug.h
-#include "secrets.h"
 // then everything else can be included
 #include "debug.h"
 #include "main.h"
@@ -527,6 +528,7 @@ void setup() {
   setLoadingScreenText("Connecting to WiFi");
 
 #ifdef USE_WIFI_MANAGER
+  wifiManager.setHostname(NETWORK_HOSTNAME);
   if (!wifiManager.getWiFiIsSaved()) {
     setLoadingScreenText("Starting WiFi AP!");
   }
@@ -547,9 +549,7 @@ void setup() {
 
   setLoadingScreenText("Enabling OTA");
 // enable OTA
-#ifndef USE_WIFI_MANAGER
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
-#endif
   ArduinoOTA.begin();
 
   setLoadingScreenText("Publishing HA MQTT config");
