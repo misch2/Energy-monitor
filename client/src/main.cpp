@@ -28,6 +28,10 @@
 #include "main.h"
 #include "ui/ui.h"
 
+#ifdef USE_WDT
+#include <esp_task_wdt.h>
+#endif
+
 #define LED_PIN_RED 4
 #define LED_PIN_GREEN 16
 #define LED_PIN_BLUE 17
@@ -82,6 +86,28 @@ void my_print(const char* buf) {
   DEBUG_PRINT(buf);
 }
 #endif
+
+void wdtInit() {
+#ifdef USE_WDT
+  TRACE_PRINT("Configuring WDT for %d seconds", WDT_TIMEOUT);
+  esp_task_wdt_init(WDT_TIMEOUT, true);  // enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL);                // add current thread to WDT watch
+#endif
+}
+
+void wdtRefresh() {
+#ifdef USE_WDT
+  TRACE_PRINT("(WDT ping)");
+  esp_task_wdt_reset();
+#endif
+}
+
+void wdtStop() {
+#ifdef USE_WDT
+  TRACE_PRINT("Stopping WDT...");
+  esp_task_wdt_deinit();
+#endif
+}
 
 void publish_homeassistant_value(bool startup,                // true if the device is starting up, false if the value is changing
                                  String component,            // component type e.g. "sensor", "text", "switch", etc.
@@ -303,6 +329,7 @@ void refresh_lv_tick_value() {
 void refresh_screen() {
   refresh_lv_tick_value();
   lv_timer_handler();
+  wdtRefresh();
 }
 
 void setLoadingScreenText(const char* text) {
@@ -527,6 +554,7 @@ void setup() {
 
   setLoadingScreenText("Connecting to WiFi");
 
+  wdtStop();
 #ifdef USE_WIFI_MANAGER
   wifiManager.setHostname(NETWORK_HOSTNAME);
   if (!wifiManager.getWiFiIsSaved()) {
@@ -542,6 +570,15 @@ void setup() {
     delay(5 * MILLIS);
   }
 #endif
+  wdtInit();
+
+
+// #ifdef USE_WDT
+//   if (esp_reset_reason() == ESP_RST_TASK_WDT) {
+//     sleepTime = SLEEP_TIME_PERMANENT_ERROR;
+//     error("Watchdog issue. Please report this to the developer.");
+//   }
+// #endif
 
   setLoadingScreenText("Connecting to MQTT");
   initMQTT();
@@ -551,7 +588,7 @@ void setup() {
   // enable OTA
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
   ArduinoOTA.begin();
-  ArduinoOTA.onStart([]() { DEBUG_PRINT("OTA Start"); });
+  ArduinoOTA.onStart([]() { DEBUG_PRINT("OTA Start"); wdtStop(); });
   ArduinoOTA.onEnd([]() { DEBUG_PRINT("OTA End"); });
 
   setLoadingScreenText("Publishing HA MQTT config");
