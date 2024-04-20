@@ -156,7 +156,7 @@ String wakeupReasonAsString() {
 };
 
 void logResetReason() {
-  DEBUG_PRINT("Reset reason: %s, wakeup reason: ", resetReasonAsString(), wakeupReasonAsString());
+  DEBUG_PRINT("Reset reason: %s, wakeup reason: %s", resetReasonAsString(), wakeupReasonAsString());
 };
 
 void publish_homeassistant_value(bool startup,                // true if the device is starting up, false if the value is changing
