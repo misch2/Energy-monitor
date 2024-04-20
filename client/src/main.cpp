@@ -156,8 +156,7 @@ String wakeupReasonAsString() {
 };
 
 void logResetReason() {
-  DEBUG_PRINT("Reset reason: %s", resetReasonAsString());
-  DEBUG_PRINT("Wakeup reason: %s", wakeupReasonAsString());
+  DEBUG_PRINT("Reset reason: %s, wakeup reason: ", resetReasonAsString(), wakeupReasonAsString());
 };
 
 void publish_homeassistant_value(bool startup,                // true if the device is starting up, false if the value is changing
@@ -621,9 +620,8 @@ void setup() {
     delay(5 * MILLIS);
   }
 #endif
-  wdtInit();
-
   logResetReason();
+  wdtInit();
 
 // #ifdef USE_WDT
 //   if (esp_reset_reason() == ESP_RST_TASK_WDT) {
