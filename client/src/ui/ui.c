@@ -24,6 +24,7 @@ lv_obj_t *ui_PanelTopOK;
 lv_obj_t *ui_LabelRemainingWattsOK;
 lv_obj_t *ui_Label3;
 lv_obj_t *ui_ArcCurrentWattsOK;
+lv_obj_t *ui_ArcWorstCaseWattsOK;
 lv_obj_t *ui_LabelWattsUsedOK;
 lv_obj_t *ui_Label5;
 
@@ -48,6 +49,7 @@ lv_obj_t *ui_LabelAppliance10;
 lv_obj_t *ui_LabelAppliance11;
 lv_obj_t *ui_LabelAppliance12;
 lv_obj_t *ui_ArcCurrentWattsWarning;
+lv_obj_t *ui_ArcWorstCaseWattsWarning;
 lv_obj_t *ui_LabelWattsUsedWarning;
 lv_obj_t *ui_Label2;
 lv_obj_t *ui_TextAreaAppliancesWarning;

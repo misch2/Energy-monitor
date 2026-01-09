@@ -37,6 +37,7 @@ extern lv_obj_t *ui_PanelTopOK;
 extern lv_obj_t *ui_LabelRemainingWattsOK;
 extern lv_obj_t *ui_Label3;
 extern lv_obj_t *ui_ArcCurrentWattsOK;
+extern lv_obj_t *ui_ArcWorstCaseWattsOK;
 extern lv_obj_t *ui_LabelWattsUsedOK;
 extern lv_obj_t *ui_Label5;
 // SCREEN: ui_WarningScreen
@@ -59,6 +60,7 @@ extern lv_obj_t *ui_LabelAppliance10;
 extern lv_obj_t *ui_LabelAppliance11;
 extern lv_obj_t *ui_LabelAppliance12;
 extern lv_obj_t *ui_ArcCurrentWattsWarning;
+extern lv_obj_t *ui_ArcWorstCaseWattsWarning;
 extern lv_obj_t *ui_LabelWattsUsedWarning;
 extern lv_obj_t *ui_Label2;
 extern lv_obj_t *ui_TextAreaAppliancesWarning;

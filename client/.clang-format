@@ -1,4 +1,4 @@
-# 
+#
 # Styles:
 #  - LLVM A style complying with the LLVM coding standards
 #  - Google A style complying with Google’s C++ style guide
@@ -11,3 +11,10 @@ BasedOnStyle: Google
 
 IndentWidth: 2
 ColumnLimit: 160
+IndentPPDirectives: BeforeHash
+
+AllowShortFunctionsOnASingleLine: Empty
+#IncludeBlocks: Preserve
+
+# Always break after if to get accurate coverage
+AllowShortIfStatementsOnASingleLine: false
