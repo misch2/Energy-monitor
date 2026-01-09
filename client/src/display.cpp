@@ -22,8 +22,6 @@ static lv_color_t buf[DRAW_BUF_SIZE];
 TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
 TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 
-LED leds = LED();
-
 #if LV_USE_LOG != 0
 /* Serial debugging */
 // void my_print( lv_log_level_t level, const char * buf )
@@ -62,7 +60,7 @@ void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
 
 void initDisplay() {
   leds.turnOffAll();
-  initBacklight();
+  backlight.init();
 
   tp.begin();
   tp.setRotation(ROTATE_TOUCH);

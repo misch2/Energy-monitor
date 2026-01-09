@@ -1,5 +1,7 @@
 #include "led.h"
 
+LED leds;
+
 LED::LED() {
   // Constructor - initialize if needed
 }
@@ -22,3 +24,5 @@ void LED::turnOffAll() {
   turnOff(GREEN_PIN);
   turnOff(BLUE_PIN);
 }
+
+

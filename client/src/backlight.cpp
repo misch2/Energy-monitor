@@ -1,13 +1,10 @@
 #include "backlight.h"
 
-#define BL_LEDC_PIN 27
-#define BL_LEDC_CHANNEL 0
 #define SECONDS_TO_MILLIS 1000
 
-int backlight_on = 0;
-Timemark backlightTimeout(30 * SECONDS_TO_MILLIS);
+Backlight::Backlight() : backlight_on(0), backlightTimeout(30 * SECONDS_TO_MILLIS) {}
 
-void setBacklight(int on_off) {  // 0 - 255
+void Backlight::setBacklight(int on_off) {  // 0 - 255
   if (backlight_on == on_off) {
     return;
   }
@@ -16,24 +13,31 @@ void setBacklight(int on_off) {  // 0 - 255
 
   // logger.debug("Setting backlight to %d", on_off);
   if (on_off == 0) {
-    ledcWrite(BL_LEDC_CHANNEL, 0);
+    ledcWrite(ledc_channel, 0);
   } else {
-    ledcWrite(BL_LEDC_CHANNEL, 255);
+    ledcWrite(ledc_channel, 255);
   }
   backlight_on = on_off;
 }
 
-void toggleBacklightManually() {
+void Backlight::toggleBacklightManually() {
   // logger.debug("Setting backlight manually to %d", !backlight_on);
   setBacklight(!backlight_on);
   backlightTimeout.stop();
 }
 
-void initBacklight() {
+void Backlight::init() {
   // PWM backlight on PIN 27
-  pinMode(BL_LEDC_PIN, OUTPUT);
-  ledcAttachPin(BL_LEDC_PIN, BL_LEDC_CHANNEL);
-  ledcSetup(BL_LEDC_CHANNEL, 5000, 8);
+  pinMode(ledc_pin, OUTPUT);
+  ledcAttachPin(ledc_pin, ledc_channel);
+  ledcSetup(ledc_channel, 5000, 8);
   setBacklight(1);
   backlightTimeout.start();  // turn off backlight after 30 seconds
+}
+
+void Backlight::loop() {
+  if (backlightTimeout.expired()) {
+    setBacklight(0);
+    backlightTimeout.stop();
+  }
 }

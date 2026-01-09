@@ -6,12 +6,37 @@
 
 #include "homeassistant.h"
 
-// this module
-extern int backlight_on;
-extern Timemark backlightTimeout;
+class Backlight {
+ private:
+  int backlight_on;
+  Timemark backlightTimeout;
 
-void setBacklight(int on_off);
-void toggleBacklightManually();
-void initBacklight();
+ public:
+  Backlight();
+  void setBacklight(int on_off);
+  void toggleBacklightManually();
+  void init();
+  void loop();
+
+  // Getters for external access if needed
+  int isBacklightOn() const {
+    return backlight_on;
+  }
+  Timemark& getTimeout() {
+    return backlightTimeout;
+  }
+  void startTimeout() {
+    backlightTimeout.start();
+  }
+  void stopTimeout() {
+    backlightTimeout.stop();
+  }
+
+  static const int ledc_pin = 27;
+  static const int ledc_channel = 0;
+};
+
+// other modules
+extern Backlight backlight;
 
 #endif  // BACKLIGHT_H

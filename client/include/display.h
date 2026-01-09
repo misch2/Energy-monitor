@@ -15,7 +15,6 @@
 // this module
 extern TFT_eSPI tft;
 extern TAMC_GT911 tp;
-extern LED leds;
 
 void initDisplay();
 void initLVGL();

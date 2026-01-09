@@ -34,6 +34,7 @@ WiFiUDP udpClient;
 // Create a new syslog instance with LOG_KERN facility
 Syslog syslog(udpClient, SYSLOG_SERVER, SYSLOG_PORT, SYSLOG_MYHOSTNAME, SYSLOG_MYAPPNAME, LOG_KERN);
 Logger logger;
+Backlight backlight;
 
 void test1() {
   logger.debug("here 1");
@@ -117,8 +118,8 @@ void setup() {
 
     wdtStop();
 
-    setBacklight(1);
-    backlightTimeout.stop();
+    backlight.setBacklight(1);
+    backlight.stopTimeout();
 
     lv_disp_load_scr(ui_LoadingScreen);
     setLoadingScreenText("OTA in progress...");
@@ -148,10 +149,8 @@ void setup() {
 void loop() {
   ArduinoOTA.handle();
   mqttClient.loop();
-  if (backlightTimeout.expired()) {
-    setBacklight(0);
-    backlightTimeout.stop();
-  }
+  backlight.loop();
+
   if (mqttTimeout.expired()) {
     // logger.debug("MQTT timeout, reconnecting");
     // mqttClient.disconnect();

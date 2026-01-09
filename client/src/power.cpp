@@ -122,8 +122,8 @@ void updateCurrentPower() {
 
   if (displayed_warning) {
     lv_disp_load_scr(ui_WarningScreen);
-    setBacklight(1);
-    backlightTimeout.start();  // turn off backlight after 30 seconds
+    backlight.setBacklight(1);
+    backlight.startTimeout();
     publish_homeassistant_value_warningstate(false, 1);
   } else {
     lv_disp_load_scr(ui_OKScreen);

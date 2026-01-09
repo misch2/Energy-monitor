@@ -5,8 +5,9 @@
 
 #include "ui.h"
 #include "main.h"
+#include "backlight.h"
 
 void ui_toggleBacklight(lv_event_t * e)
 {
-	toggleBacklightManually();
+	backlight.toggleBacklightManually();
 }
