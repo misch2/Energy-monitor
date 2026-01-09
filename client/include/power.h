@@ -16,9 +16,14 @@
 
 #define MAX_APPLIANCES 12  // as in the UI files (number of the last ui_LabelApplianceXX)
 
+class HomeAssistant;   // forward declaration
+class Backlight;      // forward declaration
+
 // other modules
 extern PubSubClient mqttClient;
 extern Logger logger;
+extern Backlight backlight;
+extern HomeAssistant homeassistant;
 
 // this module
 extern JsonDocument config;

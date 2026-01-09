@@ -33,8 +33,10 @@ WiFiClient wifiClient;
 WiFiUDP udpClient;
 // Create a new syslog instance with LOG_KERN facility
 Syslog syslog(udpClient, SYSLOG_SERVER, SYSLOG_PORT, SYSLOG_MYHOSTNAME, SYSLOG_MYAPPNAME, LOG_KERN);
-Logger logger;
-Backlight backlight;
+Logger logger(udpClient, syslog);
+PubSubClient mqttClient(wifiClient);
+HomeAssistant homeassistant(mqttClient);
+Backlight backlight(homeassistant);
 
 void test1() {
   logger.debug("here 1");
@@ -128,9 +130,9 @@ void setup() {
   ArduinoOTA.onEnd([]() { logger.debug("OTA End"); });
 
   setLoadingScreenText("Publishing HA MQTT config");
-  publish_homeassistant_value_backlight(true, 0);
-  publish_homeassistant_value_uptime(true);
-  publish_homeassistant_value_warningstate(true, 0);
+  homeassistant.publish_backlight(true, 0);
+  homeassistant.publish_uptime(true);
+  homeassistant.publish_warningstate(true, 0);
 
   setLoadingScreenText("Loading configuration");
   while (mqttTopicCurrentPower == "") {
@@ -169,6 +171,6 @@ void loop() {
     }
   }
   refresh_screen();
-  publish_homeassistant_value_uptime(false);
+  homeassistant.publish_uptime(false);
   delay(5 * MILLIS);
 }

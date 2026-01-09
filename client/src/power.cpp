@@ -124,10 +124,10 @@ void updateCurrentPower() {
     lv_disp_load_scr(ui_WarningScreen);
     backlight.setBacklight(1);
     backlight.startTimeout();
-    publish_homeassistant_value_warningstate(false, 1);
+    homeassistant.publish_warningstate(false, 1);
   } else {
     lv_disp_load_scr(ui_OKScreen);
-    publish_homeassistant_value_warningstate(false, 0);
+    homeassistant.publish_warningstate(false, 0);
   }
 }
 

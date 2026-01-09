@@ -1,21 +1,25 @@
 #include "homeassistant.h"
-#include "secrets.h"
-#include "main.h"
+
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
+#include "main.h"
+#include "secrets.h"
+
 #define SECONDS_TO_MILLIS 1000
 
-void publish_homeassistant_value(bool startup,                // true if the device is starting up, false if the value is changing
-                                 String component,            // component type e.g. "sensor", "text", "switch", etc.
-                                 String device_topic,         // device topic name, e.g. "energy_monitor" or "monitor1"
-                                 String key,                  // sensor name, e.g. "backlight_status"
-                                 String value,                // initial value
-                                 String entity_category,      // "diagnostic", "config", etc.
-                                 String device_class,         // see https://www.home-assistant.io/integrations/sensor/#device-class
-                                 String state_class,          // usually "measurement"
-                                 String unit_of_measurement,  // e.g. "W", "V", "A", "kWh", etc.
-                                 String icon                  // "mdi:battery" etc.
+HomeAssistant::HomeAssistant(PubSubClient& mqttClient) : mqttClient(mqttClient), last_warningstate(-1), last_uptime(-1) {}
+
+void HomeAssistant::publish_value(bool startup,                // true if the device is starting up, false if the value is changing
+                                  String component,            // component type e.g. "sensor", "text", "switch", etc.
+                                  String device_topic,         // device topic name, e.g. "energy_monitor" or "monitor1"
+                                  String key,                  // sensor name, e.g. "backlight_status"
+                                  String value,                // initial value
+                                  String entity_category,      // "diagnostic", "config", etc.
+                                  String device_class,         // see https://www.home-assistant.io/integrations/sensor/#device-class
+                                  String state_class,          // usually "measurement"
+                                  String unit_of_measurement,  // e.g. "W", "V", "A", "kWh", etc.
+                                  String icon                  // "mdi:battery" etc.
 ) {
   // use "sensor" if component is empty
   if (component == "") {
@@ -60,33 +64,30 @@ void publish_homeassistant_value(bool startup,                // true if the dev
   mqttClient.publish(state_topic.c_str(), value.c_str(), false);
 }
 
-void publish_homeassistant_value_backlight(bool startup, int on_off) {
-  publish_homeassistant_value(startup, "binary_sensor", MQTT_HA_DEVICENAME, "backlight", on_off ? "ON" : "OFF", "diagnostic",
-                              "light", /* one of 'battery', 'battery_charging', 'carbon_monoxide', 'cold', 'connectivity', 'door', 'garage_door', 'gas', 'heat',
-                                          'light', 'lock', 'moisture', 'motion', 'moving', 'occupancy', 'opening', 'plug', 'power', 'presence', 'problem',
-                                          'running', 'safety', 'smoke', 'sound', 'tamper', 'update', 'vibration', 'window' */
-                              "measurement", "", "mdi:lightbulb");
+void HomeAssistant::publish_backlight(bool startup, int on_off) {
+  publish_value(startup, "binary_sensor", MQTT_HA_DEVICENAME, "backlight", on_off ? "ON" : "OFF", "diagnostic",
+                "light", /* one of 'battery', 'battery_charging', 'carbon_monoxide', 'cold', 'connectivity', 'door', 'garage_door', 'gas', 'heat',
+                            'light', 'lock', 'moisture', 'motion', 'moving', 'occupancy', 'opening', 'plug', 'power', 'presence', 'problem',
+                            'running', 'safety', 'smoke', 'sound', 'tamper', 'update', 'vibration', 'window' */
+                "measurement", "", "mdi:lightbulb");
 }
 
-int last_warningstate = -1;
-void publish_homeassistant_value_warningstate(bool startup, int on_off) {
+void HomeAssistant::publish_warningstate(bool startup, int on_off) {
   if (on_off == last_warningstate && !startup) {
     return;
   }
-  publish_homeassistant_value(startup, "binary_sensor", MQTT_HA_DEVICENAME, "warning", on_off ? "ON" : "OFF", "diagnostic",
-                              "power", /* one of 'battery', 'battery_charging', 'carbon_monoxide', 'cold', 'connectivity', 'door', 'garage_door', 'gas', 'heat',
-                                          'light', 'lock', 'moisture', 'motion', 'moving', 'occupancy', 'opening', 'plug', 'power', 'presence', 'problem',
-                                          'running', 'safety', 'smoke', 'sound', 'tamper', 'update', 'vibration', 'window' */
-                              "measurement", "", "mdi:power-socket-eu");
+  publish_value(startup, "binary_sensor", MQTT_HA_DEVICENAME, "warning", on_off ? "ON" : "OFF", "diagnostic",
+                "power", /* one of 'battery', 'battery_charging', 'carbon_monoxide', 'cold', 'connectivity', 'door', 'garage_door', 'gas', 'heat',
+                            'light', 'lock', 'moisture', 'motion', 'moving', 'occupancy', 'opening', 'plug', 'power', 'presence', 'problem',
+                            'running', 'safety', 'smoke', 'sound', 'tamper', 'update', 'vibration', 'window' */
+                "measurement", "", "mdi:power-socket-eu");
   last_warningstate = on_off;
 }
 
-long last_uptime = -1;
-void publish_homeassistant_value_uptime(bool startup) {
+void HomeAssistant::publish_uptime(bool startup) {
   long uptime = millis() / 1000;
   if ((uptime - last_uptime >= 30) || (uptime < last_uptime) || startup) {  // publish every minute or if the value overflowed
-    publish_homeassistant_value(startup, "sensor", MQTT_HA_DEVICENAME, "uptime", String(uptime), "diagnostic", "duration", "measurement", "s",
-                                "mdi:chart-box-outline");
+    publish_value(startup, "sensor", MQTT_HA_DEVICENAME, "uptime", String(uptime), "diagnostic", "duration", "measurement", "s", "mdi:chart-box-outline");
     last_uptime = uptime;
   }
 }

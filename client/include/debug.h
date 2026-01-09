@@ -7,13 +7,13 @@
 
 #include "secrets.h"
 
-// other modules
-extern WiFiUDP udpClient;
-extern Syslog syslog;
-
 class Logger {
+ private:
+  WiFiUDP& udpClient;
+  Syslog& syslog;
+
  public:
-  Logger();
+  Logger(WiFiUDP& udpClient, Syslog& syslog);
 
   void debug(const char* format, ...);
 

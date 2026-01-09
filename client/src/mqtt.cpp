@@ -2,7 +2,7 @@
 
 #define SECONDS_TO_MILLIS 1000
 
-PubSubClient mqttClient(wifiClient);
+
 Timemark mqttTimeout(60 * SECONDS_TO_MILLIS);
 
 

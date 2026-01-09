@@ -1,6 +1,6 @@
 #include "debug.h"
 
-Logger::Logger() : debugEnabled(false), syslogEnabled(false) {
+Logger::Logger(WiFiUDP& udpClient, Syslog& syslog) : udpClient(udpClient), syslog(syslog), debugEnabled(false), syslogEnabled(false) {
 #ifdef DEBUG
   debugEnabled = true;
   #ifdef SYSLOG_SERVER
