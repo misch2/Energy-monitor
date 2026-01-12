@@ -40,4 +40,6 @@ class Appliance {
   bool isOn();
 };
 
+using ApplianceList = std::vector<Appliance>;
+
 #endif  // APPLIANCE_H

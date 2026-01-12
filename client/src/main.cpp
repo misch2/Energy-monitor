@@ -41,7 +41,7 @@ PubSubClient mqttClient(wifiClient);
 HomeAssistant homeassistant(mqttClient);
 MQTTClientWrapper mqttWrapper(mqttClient, logger);
 SystemLayer systemLayer(logger);
-std::vector<Appliance> appliances;
+ApplianceList appliances;
 Display display(leds, backlight, logger, systemLayer, appliances);
 
 JsonDocument jsonConfig;

@@ -29,7 +29,7 @@ class Display {
   Backlight backlight;
   Logger logger;
   SystemLayer systemLayer;
-  std::vector<Appliance> appliances;
+  ApplianceList appliances;
 
   /* LOGICAL screen orientation (i.e. rotation dependent) */
   static const uint16_t screenWidth = 320;
@@ -45,14 +45,14 @@ class Display {
   TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
 
  public:
-  Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer, std::vector<Appliance>& appliances)
+  Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer, ApplianceList& appliances)
       : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), appliances(appliances) {}
   void init();
   void refresh();
   void setLoadingScreenText(const char* text);
   bool showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts);
   void handleElectricityMeterConfigChange(float maxPowerWatts);
-  bool updatePowerReading(float limitWatts, PowerReading realPowerReading);
+  bool updatePowerReading(float limitWatts, PowerReading meterPowerReading);
 
  private:
   // static methods to be used as lvgl callbacks
