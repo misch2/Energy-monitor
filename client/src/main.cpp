@@ -43,15 +43,11 @@ MQTTClientWrapper mqttWrapper(mqttClient, logger);
 SystemLayer systemLayer(logger);
 ApplianceList appliances;
 Display display(leds, backlight, logger, systemLayer, appliances);
+Timemark displayRecalculate(1 * SECONDS_TO_MILLIS);
+ElectricityMeter mainMeter;
 
 JsonDocument jsonConfig;
 String mqttTopicMainElectricityMeterPower = "";
-
-PowerDisplayConfig current_power("W", "Aktuální spotřeba", 0.1f);
-PowerDisplayConfig remaining_power("W", "Zbývá", 50.0f);
-ElectricityMeter mainMeter;
-
-Timemark displayRecalculate(1 * SECONDS_TO_MILLIS);
 
 void test1() {
   logger.debug("here 1");

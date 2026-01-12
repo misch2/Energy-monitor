@@ -14,15 +14,6 @@
 #include "system.h"
 #include "ui/ui.h"
 
-class PowerDisplayConfig {
- public:
-  String unit;
-  String name;
-  float round_to_multiple_of;
-
-  PowerDisplayConfig(const String& unit, const String& name, float round_to_multiple_of) : unit(unit), name(name), round_to_multiple_of(round_to_multiple_of) {}
-};
-
 class Display {
  private:
   LED leds;
@@ -46,8 +37,7 @@ class Display {
 
  public:
   Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer, ApplianceList& appliances)
-      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), appliances(appliances) {
-  }
+      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), appliances(appliances) {}
   void init();
   void loop();
   void setLoadingScreenText(const char* text);
@@ -65,7 +55,6 @@ class Display {
   void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
   void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data);
   void refresh_lv_tick_value();
-
 };
 
 #endif  // DISPLAY_H
