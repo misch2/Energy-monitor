@@ -5,48 +5,20 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
-#include <array>
-
+#include "circular_buffer.h"
 #include "logger.h"
 
-template <typename T, size_t N>
-class CircularBuffer {
+class PowerReading {
  public:
-  CircularBuffer() : head(0), count(0) {}
+  PowerReading() {}
 
-  void push(T value) {
-    buffer[head] = value;
-    head = (head + 1) % N;
-    if (count < N) {
-      count++;
-    }
-  }
-
-  T get(size_t index) const {
-    if (index >= count) {
-      return T();
-    }
-    size_t actualIndex = (head + N - count + index) % N;
-    return buffer[actualIndex];
-  }
-
-  size_t size() const {
-    return count;
-  }
-
-  bool isFull() const {
-    return count == N;
-  }
-
-  void clear() {
-    head = 0;
-    count = 0;
-  }
+  float getInstantReading();
+  float getMovingMax();
+  float getMovingAverage();
+  void updateReading(float power);
 
  private:
-  std::array<T, N> buffer;
-  size_t head;
-  size_t count;
+  CircularBuffer<float, 50> values;
 };
 
 class ElectricityMeterConfig {
@@ -65,31 +37,16 @@ class ElectricityMeterConfig {
   }
 
   void updateInstantPower(float power) {
-    this->instantPower = power;
+    this->powerReading.updateReading(power);
   }
-  float getInstantPower() const {
-    return this->instantPower;
+  float getInstantPower() {
+    return this->powerReading.getInstantReading();
   }
 
  private:
   int maxCurrent = 0;
   int nominalVoltage = 0;
-  float instantPower = 0;
-};
-
-class PowerReading {
- public:
-  PowerReading() : instantPower(0), movingMaxPower(0) {}
-
-  float getInstantReading();
-  float getMovingMaxReading();
-  void updateReading(float power);
-
- private:
-  float instantPower;
-  static const int MAX_POWER_READINGS_BUFFER = 10;
-  CircularBuffer<float, MAX_POWER_READINGS_BUFFER> maxReadingsBuffer;
-  float movingMaxPower;
+  PowerReading powerReading;
 };
 
 #endif  // POWER_H

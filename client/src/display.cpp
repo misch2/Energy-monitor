@@ -160,7 +160,7 @@ void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
 
 bool Display::updatePowerReading(float limitWatts, PowerReading realPowerReading) {
   float currentWatts = realPowerReading.getInstantReading();
-  float filteredWatts = realPowerReading.getMovingMaxReading();
+  float filteredWatts = realPowerReading.getMovingMax();
 
   // if (1) {  // FIXME make it configurable: use pessimistic value for both
   //   currentWatts = currentWorstCaseWatts;

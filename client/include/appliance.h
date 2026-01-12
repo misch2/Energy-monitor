@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "power.h"
+
 class Appliance {
  public:
   String nameNominative;
@@ -17,6 +19,8 @@ class Appliance {
   String jsonTopicName;
   String jsonFieldName;
   float detectionThreshold;
+
+  PowerReading powerReading;
 
   Appliance() : maxPower(0), hasIndividualPowerMeter(false), detectionThreshold(0) {}
 
@@ -32,22 +36,8 @@ class Appliance {
         jsonFieldName(field),
         detectionThreshold(threshold) {}
 
-  static Appliance fromJson(JsonObjectConst json) {
-    Appliance app;
-    app.maxPower = json["power"] | 0.0f;
-    app.nameNominative = json["name"]["nominative"].as<String>();
-    app.nameAccusative = json["name"]["accusative"].as<String>();
-
-    if (json.containsKey("individual_power_meter")) {
-      app.hasIndividualPowerMeter = true;
-      JsonObjectConst meter = json["individual_power_meter"];
-      app.jsonTopicName = meter["json_topic"].as<String>();
-      app.jsonFieldName = meter["json_field"].as<String>();
-      app.detectionThreshold = meter["detection_threshold"] | 0.0f;
-    }
-
-    return app;
-  }
+  static Appliance fromJson(JsonObjectConst json);
+  bool isOn();
 };
 
 #endif  // APPLIANCE_H

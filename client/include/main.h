@@ -1,4 +1,4 @@
-#define VERSION "20260101.1"
+#define VERSION "20260112.1"
 
 #define USE_WDT 1
 #define WDT_TIMEOUT 60  // seconds

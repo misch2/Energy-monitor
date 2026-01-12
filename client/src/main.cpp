@@ -130,27 +130,21 @@ void parseJsonConfig(String payloadString) {
     Appliance appliance = Appliance::fromJson(applianceJson);
     logger.debug("  Appliance: %s (max power %.2f W)", appliance.nameNominative.c_str(), appliance.maxPower);
     appliances.push_back(appliance);
-  }
 
-  logger.debug("Configured %d appliances", appliances.size());
-  if (appliances.size() > MAX_APPLIANCES) {
-    // The total number of appliances is not an issue. It would be a problem only if all of them should be displayed at the same time.
-    logger.debug("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
-  }
-
-  // FIXME
-  // applianceWorstCaseCorrection.fill(0.0);  // reset all correction factors
-
-  // subscribe to all other topics if needed in appliances/individual_power_meter/json_topic
-  for (Appliance appliance : appliances) {
     if (appliance.jsonTopicName != "") {
       String topic = appliance.jsonTopicName;
-      logger.debug("Subscribing to individual power meter topic [%s]", topic.c_str());
+      logger.debug("    Subscribing to individual power meter topic [%s]", topic.c_str());
       bool ok = mqttClient.subscribe(topic.c_str());
       if (!ok) {
         display.setLoadingScreenText("MQTT subscription failed!");
       }
     }
+  }
+
+  logger.debug("Configured %d appliances", appliances.size());
+  if (appliances.size() > MAX_APPLIANCES) {
+    // The total number of appliances is not an issue. It would be a problem only if all of them should be displayed at the same time.
+    logger.debug("Too many appliances in config, only %d are supported on screen", MAX_APPLIANCES);
   }
 }
 
@@ -183,8 +177,7 @@ void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString)
     return;
   }
   float powerReading = jsonIndividualMeterData[appliance.jsonFieldName];  // 123.4
-
-  // logger.debug("Individual power meter topic [%s], path [%s] -> power: %.2f W", topicString.c_str(), json_field.c_str(), individual_power);
+  appliance.powerReading.updateReading(powerReading);
 
   float correction = 0;
   if (powerReading >= appliance.detectionThreshold) {
