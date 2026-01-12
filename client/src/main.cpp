@@ -179,6 +179,7 @@ void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString)
   float powerReading = jsonIndividualMeterData[appliance.jsonFieldName];  // 123.4
   appliance.powerReading.updateReading(powerReading);
 
+  // FIXME move elsewhere?
   float correction = 0;
   if (powerReading >= appliance.detectionThreshold) {
     // appliance is ON, update the worst-case power consumption

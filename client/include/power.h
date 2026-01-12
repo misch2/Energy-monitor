@@ -13,12 +13,12 @@ class PowerReading {
   PowerReading() {}
 
   float getInstantReading();
-  float getMovingMax();
-  float getMovingAverage();
+  float getMovingMax(size_t numValues = 10);
+  float getMovingAverage(size_t numValues = 10);
   void updateReading(float power);
 
  private:
-  CircularBuffer<float, 50> values;
+  SmartCircularBuffer<float, 50> values;
 };
 
 class ElectricityMeterConfig {
