@@ -12,41 +12,33 @@ class PowerReading {
  public:
   PowerReading() {}
 
-  float getInstantReading();
+  float getLast();
   float getMovingMax(size_t numValues = 10);
   float getMovingAverage(size_t numValues = 10);
-  void updateReading(float power);
+  void update(float power);
 
  private:
   SmartCircularBuffer<float, 50> values;
 };
 
-class ElectricityMeterConfig {
+class ElectricityMeter {
  public:
-  ElectricityMeterConfig(int current_max, int voltage) : maxCurrent(current_max), nominalVoltage(voltage) {}
-  ElectricityMeterConfig() {}
+  PowerReading powerReading;
+  int maxCurrent = 0;
+  int nominalVoltage = 0;
+
+  ElectricityMeter(int current_max, int nominalVoltage) : maxCurrent(current_max), nominalVoltage(nominalVoltage) {}
+  ElectricityMeter() {}
 
   void setMaxCurrent(int current_max) {
     this->maxCurrent = current_max;
   }
-  void setNominalVoltage(int voltage) {
-    this->nominalVoltage = voltage;
+  void setNominalVoltage(int nominalVoltage) {
+    this->nominalVoltage = nominalVoltage;
   }
-  float getMaxPower() const {
+  float getMaxAllowedWatts() const {
     return static_cast<float>(maxCurrent * nominalVoltage);
   }
-
-  void updateInstantPower(float power) {
-    this->powerReading.updateReading(power);
-  }
-  float getInstantPower() {
-    return this->powerReading.getInstantReading();
-  }
-
- private:
-  int maxCurrent = 0;
-  int nominalVoltage = 0;
-  PowerReading powerReading;
 };
 
 #endif  // POWER_H

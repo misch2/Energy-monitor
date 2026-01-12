@@ -1,6 +1,6 @@
 #include "power.h"
 
-float PowerReading::getInstantReading() {
+float PowerReading::getLast() {
   return this->values.getLast();
 }
 
@@ -12,6 +12,6 @@ float PowerReading::getMovingAverage(size_t numValues) {
   return this->values.averageValue(numValues);
 }
 
-void PowerReading::updateReading(float power) {
+void PowerReading::update(float power) {
   this->values.push(power);
 }

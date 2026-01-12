@@ -46,13 +46,14 @@ class Display {
 
  public:
   Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer, ApplianceList& appliances)
-      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), appliances(appliances) {}
+      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), appliances(appliances) {
+  }
   void init();
-  void refresh();
+  void loop();
   void setLoadingScreenText(const char* text);
   bool showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts);
   void handleElectricityMeterConfigChange(float maxPowerWatts);
-  bool updatePowerReading(float limitWatts, PowerReading meterPowerReading);
+  bool updateFromPowerReading(ElectricityMeter meter);
 
  private:
   // static methods to be used as lvgl callbacks
@@ -64,6 +65,7 @@ class Display {
   void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p);
   void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data);
   void refresh_lv_tick_value();
+
 };
 
 #endif  // DISPLAY_H

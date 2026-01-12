@@ -115,7 +115,7 @@ void Display::refresh_lv_tick_value() {
   }
 }
 
-void Display::refresh() {
+void Display::loop() {
   refresh_lv_tick_value();
   lv_timer_handler();
   systemLayer.wdtRefresh();
@@ -124,7 +124,7 @@ void Display::refresh() {
 void Display::setLoadingScreenText(const char* text) {
   logger.debug(text);
   lv_label_set_text(ui_LoadingLabel, text);
-  refresh();
+  loop();
 }
 
 bool Display::showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts) {
@@ -143,6 +143,14 @@ bool Display::showApplianceLabel(lv_obj_t* ui_element, int number, int remaining
     return false;
   };
 
+  if (appliance.isOn()) {
+    // display it too, but in a dimmed color
+    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+  } else {
+    // normal bright warning color
+    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
+
   String name = appliance.nameAccusative;
   // logger.debug("Appliance %d displayed, remainingWatts %d <= %d, name: %s", number, remainingWatts, (int)appliance["power"], name.c_str());
   lv_label_set_text(ui_element, name.c_str());
@@ -158,23 +166,27 @@ void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
   lv_arc_set_range(ui_ArcWorstCaseWattsWarning, 0, maxPowerWatts);
 }
 
-bool Display::updatePowerReading(float limitWatts, PowerReading realPowerReading) {
-  float currentWatts = realPowerReading.getInstantReading();
-  float filteredWatts = realPowerReading.getMovingMax();
+bool Display::updateFromPowerReading(ElectricityMeter meter) {
+  float currentWatts = meter.powerReading.getMovingAverage(3);
+  float maxUsedWatts = meter.powerReading.getMovingMax(5);
 
-  // if (1) {  // FIXME make it configurable: use pessimistic value for both
-  //   currentWatts = currentWorstCaseWatts;
-  //   filteredWatts = filteredCurrentWorstCaseWatts;
-  // }
-
-  float remainingWatts = limitWatts - filteredWatts;              // time filtered and rounded down value for the warning message, to prevent flickering
-  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;  // round down to multiples of 50
+  float remainingWatts = meter.getMaxAllowedWatts() - maxUsedWatts;  // time filtered and rounded down value for the warning message, to prevent flickering
+  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;     // round down to multiples of 50
 
   // non-filtered and more precise value for the gauge
   lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
   lv_arc_set_value(ui_ArcCurrentWattsWarning, currentWatts);
-  // lv_arc_set_value(ui_ArcWorstCaseWattsOK, currentWorstCaseWatts);
-  // lv_arc_set_value(ui_ArcWorstCaseWattsWarning, currentWorstCaseWatts);
+
+  // Calculate worst-case power consumption based on the individual appliances
+  float currentWorstCaseWatts = currentWatts;
+  for (auto appliance : appliances) {
+    if (appliance.isOn()) {
+      currentWorstCaseWatts += appliance.maxPower - appliance.powerReading.getMovingMax(3);
+    }
+  }
+
+  lv_arc_set_value(ui_ArcWorstCaseWattsOK, currentWorstCaseWatts);
+  lv_arc_set_value(ui_ArcWorstCaseWattsWarning, currentWorstCaseWatts);
 
   String label = "";
   label += displayedRemainingWatts;

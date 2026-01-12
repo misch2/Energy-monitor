@@ -45,26 +45,24 @@ ApplianceList appliances;
 Display display(leds, backlight, logger, systemLayer, appliances);
 
 JsonDocument jsonConfig;
+String mqttTopicMainElectricityMeterPower = "";
 
 PowerDisplayConfig current_power("W", "Aktuální spotřeba", 0.1f);
 PowerDisplayConfig remaining_power("W", "Zbývá", 50.0f);
-ElectricityMeterConfig main_electricity_meter;
-String mqttTopicMainElectricityMeterPower = "";
+ElectricityMeter mainMeter;
 
-// values from meters
-PowerReading realPowerReading;
-// PowerReading worstCasePowerReading;
+Timemark displayRecalculate(1 * SECONDS_TO_MILLIS);
 
 void test1() {
   logger.debug("here 1");
   lv_disp_load_scr(ui_OKScreen);
-  display.refresh();
+  display.loop();
   // logger.debug("a");
   delay(2 * SECONDS_TO_MILLIS);
 
   logger.debug("here 2");
   lv_disp_load_scr(ui_WarningScreen);
-  display.refresh();
+  display.loop();
   lv_timer_handler();
   delay(2 * SECONDS_TO_MILLIS);
 
@@ -89,10 +87,10 @@ void test2() {
     logger.debug("in the loop, i=%d", i);
     lv_disp_load_scr(ui_OKScreen);
     lv_label_set_text(ui_LabelRemainingWattsOK, i % 2 == 0 ? "even" : "odd");
-    display.refresh();
+    display.loop();
     delay(2 * SECONDS_TO_MILLIS);
     lv_disp_load_scr(ui_WarningScreen);
-    display.refresh();
+    display.loop();
     delay(2 * SECONDS_TO_MILLIS);
   }
 }
@@ -111,9 +109,9 @@ void parseJsonConfig(String payloadString) {
   // serializeJsonPretty(jsonConfig, tmp);
   // logger.debug(tmp.c_str());
 
-  main_electricity_meter.setNominalVoltage((int)jsonConfig["electricity"]["meter"]["voltage"]);
-  main_electricity_meter.setMaxCurrent((int)jsonConfig["electricity"]["meter"]["current"]);
-  display.handleElectricityMeterConfigChange(main_electricity_meter.getMaxPower());
+  mainMeter.setNominalVoltage((int)jsonConfig["electricity"]["meter"]["voltage"]);
+  mainMeter.setMaxCurrent((int)jsonConfig["electricity"]["meter"]["current"]);
+  display.handleElectricityMeterConfigChange(mainMeter.getMaxAllowedWatts());
 
   mqttTopicMainElectricityMeterPower = (const char*)jsonConfig["topics"]["current_power"];
   logger.debug("Subscribing to power meter topic [%s]", mqttTopicMainElectricityMeterPower.c_str());
@@ -149,21 +147,7 @@ void parseJsonConfig(String payloadString) {
 }
 
 void handleMainElectricityMeterUpdate(String payloadString) {
-  main_electricity_meter.updateInstantPower(payloadString.toFloat());
-
-  // currentWorstCaseWatts = instantaneousRealWatts;
-  // // adjust for worst-case power consumption of detected appliances
-  // for (size_t i = 0; i < appliances.size(); i++) {
-  //   currentWorstCaseWatts += applianceWorstCaseCorrection[i];
-  // }
-
-  realPowerReading.updateReading(main_electricity_meter.getInstantPower());
-
-  if (display.updatePowerReading(main_electricity_meter.getMaxPower(), realPowerReading)) {
-    homeassistant.publish_warningstate(false, 0);
-  } else {
-    homeassistant.publish_warningstate(false, 1);
-  }
+  mainMeter.powerReading.update(payloadString.toFloat());
 }
 
 void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString) {
@@ -176,21 +160,7 @@ void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString)
     logger.debug("Parsing individual power meter input failed: %s", error.c_str());
     return;
   }
-  float powerReading = jsonIndividualMeterData[appliance.jsonFieldName];  // 123.4
-  appliance.powerReading.updateReading(powerReading);
-
-  // FIXME move elsewhere?
-  float correction = 0;
-  if (powerReading >= appliance.detectionThreshold) {
-    // appliance is ON, update the worst-case power consumption
-    correction = appliance.maxPower - powerReading;  // 900 W (max) - 35 W (measured) = 865 W (correction)
-    // logger.debug("Appliance #%d is ON, individual power %.2f W >= detection threshold %.2f W, setting worst-case power consumption correction to %.2f
-    // W",
-    //             i + 1, individual_power, detection_threshold, correction);
-    // logger.debug("  (appliance max power %.2f W - individual power %.2f W = correction %.2f W)", appliance.maxPower, individual_power,
-    // correction);
-  }
-  // applianceWorstCaseCorrection[i] = correction;
+  appliance.powerReading.update(jsonIndividualMeterData[appliance.jsonFieldName]);
 }
 
 // handle message arrived
@@ -266,7 +236,7 @@ void setup() {
 
     lv_disp_load_scr(ui_LoadingScreen);
     display.setLoadingScreenText("OTA in progress...");
-    display.refresh();
+    display.loop();
   });
   ArduinoOTA.onEnd([]() { logger.debug("OTA End"); });
 
@@ -281,9 +251,7 @@ void setup() {
   // }
 
   display.setLoadingScreenText("Initialization done");
-
-  display.updatePowerReading(main_electricity_meter.getMaxPower(), realPowerReading);
-  display.refresh();
+  displayRecalculate.start();
 
   logger.debug("Setup done, version %s", VERSION);
 }
@@ -294,7 +262,17 @@ void loop() {
   backlight.loop();
   mqttWrapper.loop();
 
-  display.refresh();
+  if (displayRecalculate.expired()) {
+    // update the display from the accumulated power reading
+    if (display.updateFromPowerReading(mainMeter)) {
+      homeassistant.publish_warningstate(false, 0);
+    } else {
+      homeassistant.publish_warningstate(false, 1);
+    }
+    displayRecalculate.start();
+  }
+  display.loop();
+
   homeassistant.publish_uptime_if_needed(false);
   delay(5 * MILLIS);
 }

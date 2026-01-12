@@ -21,6 +21,6 @@ bool Appliance::isOn() {
   if (!hasIndividualPowerMeter) {
     return false;
   }
-  float currentPower = powerReading.getInstantReading();
+  float currentPower = powerReading.getLast();
   return currentPower >= detectionThreshold;
 }
