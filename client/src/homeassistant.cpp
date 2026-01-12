@@ -6,8 +6,6 @@
 #include "main.h"
 #include "secrets.h"
 
-#define SECONDS_TO_MILLIS 1000
-
 HomeAssistant::HomeAssistant(PubSubClient& mqttClient) : mqttClient(mqttClient), last_warningstate(-1), last_uptime(-1) {}
 
 void HomeAssistant::publish_value(bool startup,                // true if the device is starting up, false if the value is changing
@@ -84,7 +82,7 @@ void HomeAssistant::publish_warningstate(bool startup, int on_off) {
   last_warningstate = on_off;
 }
 
-void HomeAssistant::publish_uptime(bool startup) {
+void HomeAssistant::publish_uptime_if_needed(bool startup) {
   long uptime = millis() / 1000;
   if ((uptime - last_uptime >= 30) || (uptime < last_uptime) || startup) {  // publish every minute or if the value overflowed
     publish_value(startup, "sensor", MQTT_HA_DEVICENAME, "uptime", String(uptime), "diagnostic", "duration", "measurement", "s", "mdi:chart-box-outline");

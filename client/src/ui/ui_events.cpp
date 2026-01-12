@@ -3,11 +3,12 @@
 // LVGL version: 8.3.6
 // Project name: Energy_monitor
 
-#include "ui.h"
-#include "main.h"
 #include "backlight.h"
+#include "main.h"
+#include "ui.h"
 
-void ui_toggleBacklight(lv_event_t * e)
-{
-	backlight.toggleBacklightManually();
+extern Backlight backlight;
+
+void ui_toggleBacklight(lv_event_t* e) {
+  backlight.toggleBacklightManually();
 }

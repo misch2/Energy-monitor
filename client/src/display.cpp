@@ -11,28 +11,28 @@
 #define ROTATE_TFT 0
 #define ROTATE_TOUCH ROTATION_INVERTED  // NORMAL, LEFT, INVERTED, RIGHT
 
-/* LOGICAL screen orientation (i.e. rotation dependent) */
-static const uint16_t screenWidth = 320;
-static const uint16_t screenHeight = 480;
+// static methods
+void Display::_disp_flush_callback(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p) {
+  auto* instance = static_cast<Display*>(disp_drv->user_data);
+  if (instance) {
+    instance->my_disp_flush(disp_drv, area, color_p);
+  }
+}
+void Display::_touchpad_read_callback(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
+  auto* instance = static_cast<Display*>(indev_driver->user_data);
+  if (instance) {
+    instance->my_touchpad_read(indev_driver, data);
+  }
+}
 
-static lv_disp_draw_buf_t draw_buf;
-#define DRAW_BUF_SIZE (screenWidth * screenHeight / 10)
-static lv_color_t buf[DRAW_BUF_SIZE];
-
-TFT_eSPI tft = TFT_eSPI(screenWidth, screenHeight); /* TFT instance */
-TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);
-
-#if LV_USE_LOG != 0
 /* Serial debugging */
-// void my_print( lv_log_level_t level, const char * buf )
-void my_print(const char* buf) {
+void Display::my_print(const char* buf) {
   // LV_UNUSED(level);
   logger.debug(buf);
 }
-#endif
 
 /* Display flushing */
-void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p) {
+void Display::my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* color_p) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
 
@@ -45,7 +45,7 @@ void my_disp_flush(lv_disp_drv_t* disp_drv, const lv_area_t* area, lv_color_t* c
   lv_disp_flush_ready(disp_drv);
 }
 
-void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
+void Display::my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
   tp.read();
   bool touched = tp.isTouched && tp.touches == 1;  // allowing only single touch here
   if (!touched) {
@@ -58,26 +58,28 @@ void my_touchpad_read(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
   }
 }
 
-void initDisplay() {
+void Display::init() {
   leds.turnOffAll();
-  backlight.init();
+  backlight.setBacklight(1);
 
   tp.begin();
   tp.setRotation(ROTATE_TOUCH);
+
+  initLVGL();
 }
 
-void initLVGL() {
+void Display::initLVGL() {
   lv_init();
 
 #if LV_USE_LOG != 0
-  lv_log_register_print_cb(my_print); /* register print function for debugging */
+  lv_log_register_print_cb([this](const char* buf) { my_print(buf); }); /* register print function for debugging */
 #endif
 
   tft.begin(); /* TFT init */
   tft.setRotation(ROTATE_TFT);
 
   /* Buffer to draw to */
-  lv_disp_draw_buf_init(&draw_buf, buf, NULL, DRAW_BUF_SIZE);
+  lv_disp_draw_buf_init(&draw_buf, buf, NULL, drawBufferSize);
 
   /* Driver definition */
   static lv_disp_drv_t disp_drv;
@@ -85,20 +87,21 @@ void initLVGL() {
   /*Change the following line to your display resolution*/
   disp_drv.hor_res = screenWidth;
   disp_drv.ver_res = screenHeight;
-  disp_drv.flush_cb = my_disp_flush;
+  disp_drv.flush_cb = Display::_disp_flush_callback;  // static method
   disp_drv.draw_buf = &draw_buf;
+  disp_drv.user_data = this;  // attach the instance pointer for use in callbacks
   lv_disp_drv_register(&disp_drv);
 
   /*Initialize the (dummy) input device driver*/
   static lv_indev_drv_t indev_drv;
   lv_indev_drv_init(&indev_drv);
   indev_drv.type = LV_INDEV_TYPE_POINTER;
-  indev_drv.read_cb = my_touchpad_read;
+  indev_drv.read_cb = Display::_touchpad_read_callback;  // static method
+  indev_drv.user_data = this;                            // attach the instance pointer for use in callbacks
   lv_indev_drv_register(&indev_drv);
 }
 
-unsigned long last_millis = millis();
-void refresh_lv_tick_value() {
+void Display::refresh_lv_tick_value() {
   // LV_TICK_CUSTOM in lvgl.h doesn't work for some reason, neither as Arduino nor as ESP-IDF.
   // Therefore this hack:
   // lv_tick_inc(max(LV_DISP_DEF_REFR_PERIOD, LV_INDEV_DEF_READ_PERIOD));
@@ -112,14 +115,100 @@ void refresh_lv_tick_value() {
   }
 }
 
-void refresh_screen() {
+void Display::refresh() {
   refresh_lv_tick_value();
   lv_timer_handler();
-  wdtRefresh();
+  systemLayer.wdtRefresh();
 }
 
-void setLoadingScreenText(const char* text) {
+void Display::setLoadingScreenText(const char* text) {
   logger.debug(text);
   lv_label_set_text(ui_LoadingLabel, text);
-  refresh_screen();
+  refresh();
+}
+
+bool Display::showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts) {
+  // logger.debug("in showApplianceLabel(%d, %d)", number, remainingWatts);
+
+  if (number > appliances.size()) {
+    // logger.debug("Appliance #%d not found in config, skipping this label", number);
+    lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+    return false;
+  }
+
+  Appliance appliance = appliances[number - 1];
+  if (remainingWatts > appliance.maxPower) {
+    // logger.debug("Appliance %d compliant, remainingWatts %d > %d, skipping this label", number, remainingWatts, (int)appliance["power"]);
+    lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+    return false;
+  };
+
+  String name = appliance.nameAccusative;
+  // logger.debug("Appliance %d displayed, remainingWatts %d <= %d, name: %s", number, remainingWatts, (int)appliance["power"], name.c_str());
+  lv_label_set_text(ui_element, name.c_str());
+  lv_obj_clear_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
+
+  return true;
+}
+
+void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
+  lv_arc_set_range(ui_ArcCurrentWattsOK, 0, maxPowerWatts);
+  lv_arc_set_range(ui_ArcCurrentWattsWarning, 0, maxPowerWatts);
+  lv_arc_set_range(ui_ArcWorstCaseWattsOK, 0, maxPowerWatts);
+  lv_arc_set_range(ui_ArcWorstCaseWattsWarning, 0, maxPowerWatts);
+}
+
+bool Display::updatePowerReading(float limitWatts, PowerReading realPowerReading) {
+  float currentWatts = realPowerReading.getInstantReading();
+  float filteredWatts = realPowerReading.getMovingMaxReading();
+
+  // if (1) {  // FIXME make it configurable: use pessimistic value for both
+  //   currentWatts = currentWorstCaseWatts;
+  //   filteredWatts = filteredCurrentWorstCaseWatts;
+  // }
+
+  float remainingWatts = limitWatts - filteredWatts;              // time filtered and rounded down value for the warning message, to prevent flickering
+  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;  // round down to multiples of 50
+
+  // non-filtered and more precise value for the gauge
+  lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
+  lv_arc_set_value(ui_ArcCurrentWattsWarning, currentWatts);
+  // lv_arc_set_value(ui_ArcWorstCaseWattsOK, currentWorstCaseWatts);
+  // lv_arc_set_value(ui_ArcWorstCaseWattsWarning, currentWorstCaseWatts);
+
+  String label = "";
+  label += displayedRemainingWatts;
+  label += " W";
+  lv_label_set_text(ui_LabelRemainingWattsOK, label.c_str());
+  lv_label_set_text(ui_LabelRemainingWattsWarning, label.c_str());
+
+  label = "";
+  label += (int)(currentWatts);
+  label += " W";
+  lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
+  lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
+
+  bool displayed_warning = false;
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance1, 1, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance2, 2, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance3, 3, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance4, 4, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance5, 5, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance6, 6, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance7, 7, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance8, 8, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance9, 9, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance10, 10, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance11, 11, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance12, 12, displayedRemainingWatts);
+
+  if (displayed_warning) {
+    lv_disp_load_scr(ui_WarningScreen);
+    backlight.setBacklight(1);
+    backlight.startTimeout();
+    return 0;
+  };
+
+  lv_disp_load_scr(ui_OKScreen);
+  return 1;
 }

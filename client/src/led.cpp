@@ -1,7 +1,5 @@
 #include "led.h"
 
-LED leds;
-
 LED::LED() {
   // Constructor - initialize if needed
 }

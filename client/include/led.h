@@ -20,6 +20,4 @@ class LED {
   void setPin(int pin, bool state);
 };
 
-extern LED leds;
-
 #endif  // LED_H

@@ -4,23 +4,22 @@
 #include <Arduino.h>
 #include <Timemark.h>
 
-#include "homeassistant.h"
-
-class HomeAssistant;  // forward declaration
-
 class Backlight {
  private:
-  HomeAssistant& homeassistant;
   int backlight_on;
   Timemark backlightTimeout;
+  std::function<void(int)> afterChangeCallback;
 
  public:
-  Backlight(HomeAssistant& ha);
+  Backlight();
 
   void setBacklight(int on_off);
   void toggleBacklightManually();
   void init();
   void loop();
+  void registerAfterChangeCallback(std::function<void(int)> func) {
+    afterChangeCallback = func;
+  }
 
   // Getters for external access if needed
   int isBacklightOn() const {
@@ -39,7 +38,5 @@ class Backlight {
   static const int ledc_pin = 27;
   static const int ledc_channel = 0;
 };
-
-extern Backlight backlight;
 
 #endif  // BACKLIGHT_H

@@ -5,43 +5,91 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
-#include <CircularBuffer.hpp>
 #include <array>
 
-#include "backlight.h"
-#include "debug.h"
-#include "display.h"
-#include "homeassistant.h"
-#include "ui/ui.h"
+#include "logger.h"
 
-#define MAX_APPLIANCES 12  // as in the UI files (number of the last ui_LabelApplianceXX)
+template <typename T, size_t N>
+class CircularBuffer {
+ public:
+  CircularBuffer() : head(0), count(0) {}
 
-class HomeAssistant;   // forward declaration
-class Backlight;      // forward declaration
+  void push(T value) {
+    buffer[head] = value;
+    head = (head + 1) % N;
+    if (count < N) {
+      count++;
+    }
+  }
 
-// other modules
-extern PubSubClient mqttClient;
-extern Logger logger;
-extern Backlight backlight;
-extern HomeAssistant homeassistant;
+  T get(size_t index) const {
+    if (index >= count) {
+      return T();
+    }
+    size_t actualIndex = (head + N - count + index) % N;
+    return buffer[actualIndex];
+  }
 
-// this module
-extern JsonDocument config;
-extern String mqttTopicCurrentPower;
-extern int voltage;
-extern int maxCurrent;
-extern int limitWatts;
-extern JsonArray appliances;
-extern std::array<float, MAX_APPLIANCES> applianceWorstCaseCorrection;
+  size_t size() const {
+    return count;
+  }
 
-extern float currentRealWatts;
-extern float filteredCurrentRealWatts;
-extern float currentWorstCaseWatts;
-extern float filteredCurrentWorstCaseWatts;
+  bool isFull() const {
+    return count == N;
+  }
 
-void handleMQTTMessageCurrentPower(String payloadString);
-void handleMQTTMessageConfiguration(String payloadString);
-void updateCurrentPower();
-bool showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts);
+  void clear() {
+    head = 0;
+    count = 0;
+  }
+
+ private:
+  std::array<T, N> buffer;
+  size_t head;
+  size_t count;
+};
+
+class ElectricityMeterConfig {
+ public:
+  ElectricityMeterConfig(int current_max, int voltage) : maxCurrent(current_max), nominalVoltage(voltage) {}
+  ElectricityMeterConfig() {}
+
+  void setMaxCurrent(int current_max) {
+    this->maxCurrent = current_max;
+  }
+  void setNominalVoltage(int voltage) {
+    this->nominalVoltage = voltage;
+  }
+  float getMaxPower() const {
+    return static_cast<float>(maxCurrent * nominalVoltage);
+  }
+
+  void updateInstantPower(float power) {
+    this->instantPower = power;
+  }
+  float getInstantPower() const {
+    return this->instantPower;
+  }
+
+ private:
+  int maxCurrent = 0;
+  int nominalVoltage = 0;
+  float instantPower = 0;
+};
+
+class PowerReading {
+ public:
+  PowerReading() : instantPower(0), movingMaxPower(0) {}
+
+  float getInstantReading();
+  float getMovingMaxReading();
+  void updateReading(float power);
+
+ private:
+  float instantPower;
+  static const int MAX_POWER_READINGS_BUFFER = 10;
+  CircularBuffer<float, MAX_POWER_READINGS_BUFFER> maxReadingsBuffer;
+  float movingMaxPower;
+};
 
 #endif  // POWER_H

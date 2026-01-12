@@ -18,7 +18,7 @@ class HomeAssistant {
                      String state_class, String unit_of_measurement, String icon);
   void publish_backlight(bool startup, int on_off);
   void publish_warningstate(bool startup, int on_off);
-  void publish_uptime(bool startup);
+  void publish_uptime_if_needed(bool startup);
 };
 
 #endif  // HOMEASSISTANT_H

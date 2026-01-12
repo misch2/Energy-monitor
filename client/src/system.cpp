@@ -1,11 +1,12 @@
 #include "system.h"
-#include "debug.h"
+
+#include "logger.h"
 
 #ifdef USE_WDT
-#include <esp_task_wdt.h>
+  #include <esp_task_wdt.h>
 #endif
 
-void wdtInit() {
+void SystemLayer::wdtInit() {
 #ifdef USE_WDT
   logger.debug("Configuring WDT for %d seconds", WDT_TIMEOUT);
   esp_task_wdt_init(WDT_TIMEOUT, true);  // enable panic so ESP32 restarts
@@ -13,21 +14,21 @@ void wdtInit() {
 #endif
 }
 
-void wdtRefresh() {
+void SystemLayer::wdtRefresh() {
 #ifdef USE_WDT
   // TRACE_PRINT("(WDT ping)");
   esp_task_wdt_reset();
 #endif
 }
 
-void wdtStop() {
+void SystemLayer::wdtStop() {
 #ifdef USE_WDT
   // TRACE_PRINT("Stopping WDT...");
   esp_task_wdt_deinit();
 #endif
 }
 
-String resetReasonAsString() {
+String SystemLayer::resetReasonAsString() {
   esp_reset_reason_t reset_reason = esp_reset_reason();
   if (reset_reason == ESP_RST_UNKNOWN) {
     return "UNKNOWN";
@@ -54,7 +55,7 @@ String resetReasonAsString() {
   }
 }
 
-String wakeupReasonAsString() {
+String SystemLayer::wakeupReasonAsString() {
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
   if (wakeup_reason == ESP_SLEEP_WAKEUP_UNDEFINED) {
     return "UNDEFINED";
@@ -73,6 +74,6 @@ String wakeupReasonAsString() {
   }
 }
 
-void logResetReason() { 
-  logger.debug("Reset reason: %s, wakeup reason: %s", resetReasonAsString(), wakeupReasonAsString()); 
+void SystemLayer::logResetReason() {
+  logger.debug("Reset reason: %s, wakeup reason: %s", resetReasonAsString(), wakeupReasonAsString());
 }

@@ -7,20 +7,26 @@
 #include <Timemark.h>
 #include <WiFi.h>
 
-#include "debug.h"
+#include "logger.h"
 #include "power.h"
 #include "secrets.h"
 
-// other modules
-extern WiFiClient wifiClient;
+class MQTTClientWrapper {
+ private:
+  PubSubClient& client;
+  Logger& logger;
 
-// this module
-extern PubSubClient mqttClient;
-extern Timemark mqttTimeout;
-extern Logger logger;
+  Timemark mqttTimeout;
+  std::function<void(char*, byte*, unsigned int)> callbackFunc;
 
-void initMQTT();
-void reconnectMQTT();
-void MQTTcallback(char* topic, byte* payload, unsigned int length);
+ public:
+  MQTTClientWrapper(PubSubClient& client, Logger& logger);
+  void init(std::function<void(char*, byte*, unsigned int)> callbackFunc);
+  void reconnect();
+  void loop();
+
+ private:
+  void callbackWrapper(char* topic, byte* payload, unsigned int length);
+};
 
 #endif  // MQTT_H

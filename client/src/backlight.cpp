@@ -2,14 +2,16 @@
 
 #define SECONDS_TO_MILLIS 1000
 
-Backlight::Backlight(HomeAssistant& ha) : homeassistant(ha), backlight_on(0), backlightTimeout(30 * SECONDS_TO_MILLIS) {}
+Backlight::Backlight() : backlight_on(0), backlightTimeout(30 * SECONDS_TO_MILLIS) {}
 
 void Backlight::setBacklight(int on_off) {  // 0 - 255
   if (backlight_on == on_off) {
     return;
   }
 
-  homeassistant.publish_backlight(false, on_off);
+  if (afterChangeCallback) {
+    afterChangeCallback(on_off);
+  }
 
   // logger.debug("Setting backlight to %d", on_off);
   if (on_off == 0) {

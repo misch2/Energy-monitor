@@ -1,5 +1,6 @@
 // this must be first, even before debug.h
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <ArduinoOTA.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
@@ -16,11 +17,12 @@
 #include "ui/ui.h"
 
 // Include modular headers
+#include "appliance.h"
 #include "backlight.h"
-#include "debug.h"
 #include "display.h"
 #include "homeassistant.h"
 #include "led.h"
+#include "logger.h"
 #include "mqtt.h"
 #include "power.h"
 #include "system.h"
@@ -31,32 +33,47 @@
 WiFiManager wifiManager;
 WiFiClient wifiClient;
 WiFiUDP udpClient;
-// Create a new syslog instance with LOG_KERN facility
+LED leds;
+Backlight backlight;
 Syslog syslog(udpClient, SYSLOG_SERVER, SYSLOG_PORT, SYSLOG_MYHOSTNAME, SYSLOG_MYAPPNAME, LOG_KERN);
 Logger logger(udpClient, syslog);
 PubSubClient mqttClient(wifiClient);
 HomeAssistant homeassistant(mqttClient);
-Backlight backlight(homeassistant);
+MQTTClientWrapper mqttWrapper(mqttClient, logger);
+SystemLayer systemLayer(logger);
+std::vector<Appliance> appliances;
+Display display(leds, backlight, logger, systemLayer, appliances);
+
+JsonDocument jsonConfig;
+
+PowerDisplayConfig current_power("W", "Aktuální spotřeba", 0.1f);
+PowerDisplayConfig remaining_power("W", "Zbývá", 50.0f);
+ElectricityMeterConfig main_electricity_meter;
+String mqttTopicMainElectricityMeterPower = "";
+
+// values from meters
+PowerReading realPowerReading;
+// PowerReading worstCasePowerReading;
 
 void test1() {
   logger.debug("here 1");
   lv_disp_load_scr(ui_OKScreen);
-  refresh_screen();
+  display.refresh();
   // logger.debug("a");
   delay(2 * SECONDS_TO_MILLIS);
 
   logger.debug("here 2");
   lv_disp_load_scr(ui_WarningScreen);
-  refresh_screen();
+  display.refresh();
   lv_timer_handler();
   delay(2 * SECONDS_TO_MILLIS);
 
   logger.debug("here 3");
-  setLoadingScreenText("Random text");
+  display.setLoadingScreenText("Random text");
   delay(2 * SECONDS_TO_MILLIS);
 
   logger.debug("here 4");
-  setLoadingScreenText("Foobar");
+  display.setLoadingScreenText("Foobar");
   delay(2 * SECONDS_TO_MILLIS);
 
   logger.debug("end");
@@ -64,9 +81,7 @@ void test1() {
 
 void test2() {
   logger.debug("initDisplay");
-  initDisplay();
-  logger.debug("initLVGL");
-  initLVGL();
+  display.init();
   logger.debug("ui_init");
   ui_init();
   logger.debug("initDisplay done, entering infinite loop");
@@ -74,31 +89,164 @@ void test2() {
     logger.debug("in the loop, i=%d", i);
     lv_disp_load_scr(ui_OKScreen);
     lv_label_set_text(ui_LabelRemainingWattsOK, i % 2 == 0 ? "even" : "odd");
-    refresh_screen();
+    display.refresh();
     delay(2 * SECONDS_TO_MILLIS);
     lv_disp_load_scr(ui_WarningScreen);
-    refresh_screen();
+    display.refresh();
     delay(2 * SECONDS_TO_MILLIS);
+  }
+}
+
+void parseJsonConfig(String payloadString) {
+  logger.debug("Parsing config...");
+  DeserializationError error = deserializeJson(jsonConfig, payloadString);
+  if (error) {
+    logger.debug("Parsing input failed: %s", error.c_str());
+    display.setLoadingScreenText("Invalid config!");
+    return;
+  }
+
+  // logger.debug("Parsed configuration:");
+  // String tmp = "";
+  // serializeJsonPretty(jsonConfig, tmp);
+  // logger.debug(tmp.c_str());
+
+  main_electricity_meter.setNominalVoltage((int)jsonConfig["electricity"]["meter"]["voltage"]);
+  main_electricity_meter.setMaxCurrent((int)jsonConfig["electricity"]["meter"]["current"]);
+  display.handleElectricityMeterConfigChange(main_electricity_meter.getMaxPower());
+
+  mqttTopicMainElectricityMeterPower = (const char*)jsonConfig["topics"]["current_power"];
+  logger.debug("Subscribing to power meter topic [%s]", mqttTopicMainElectricityMeterPower.c_str());
+  bool ok = mqttClient.subscribe(mqttTopicMainElectricityMeterPower.c_str());
+  if (!ok) {
+    display.setLoadingScreenText("MQTT subscription failed!");
+  }
+
+  auto appliancesJsonArray = jsonConfig["electricity"]["appliances"].as<JsonArray>();
+  logger.debug("Found %d appliances in config:", appliancesJsonArray.size());
+
+  appliances.clear();
+  for (JsonObject applianceJson : appliancesJsonArray) {
+    Appliance appliance = Appliance::fromJson(applianceJson);
+    logger.debug("  Appliance: %s (max power %.2f W)", appliance.nameNominative.c_str(), appliance.maxPower);
+    appliances.push_back(appliance);
+  }
+
+  logger.debug("Configured %d appliances", appliances.size());
+  if (appliances.size() > MAX_APPLIANCES) {
+    // The total number of appliances is not an issue. It would be a problem only if all of them should be displayed at the same time.
+    logger.debug("Too many appliances in config, only %d are supported", MAX_APPLIANCES);
+  }
+
+  // FIXME
+  // applianceWorstCaseCorrection.fill(0.0);  // reset all correction factors
+
+  // subscribe to all other topics if needed in appliances/individual_power_meter/json_topic
+  for (Appliance appliance : appliances) {
+    if (appliance.jsonTopicName != "") {
+      String topic = appliance.jsonTopicName;
+      logger.debug("Subscribing to individual power meter topic [%s]", topic.c_str());
+      bool ok = mqttClient.subscribe(topic.c_str());
+      if (!ok) {
+        display.setLoadingScreenText("MQTT subscription failed!");
+      }
+    }
+  }
+}
+
+void handleMainElectricityMeterUpdate(String payloadString) {
+  main_electricity_meter.updateInstantPower(payloadString.toFloat());
+
+  // currentWorstCaseWatts = instantaneousRealWatts;
+  // // adjust for worst-case power consumption of detected appliances
+  // for (size_t i = 0; i < appliances.size(); i++) {
+  //   currentWorstCaseWatts += applianceWorstCaseCorrection[i];
+  // }
+
+  realPowerReading.updateReading(main_electricity_meter.getInstantPower());
+
+  if (display.updatePowerReading(main_electricity_meter.getMaxPower(), realPowerReading)) {
+    homeassistant.publish_warningstate(false, 0);
+  } else {
+    homeassistant.publish_warningstate(false, 1);
+  }
+}
+
+void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString) {
+  // logger.debug("Handling individual power meter topic [%s]", topicString.c_str());
+
+  // parse payload as JSON and get the value at json_field (e.g. { "power": 123.4 } and json_field = "power" -> 123.4)
+  JsonDocument jsonIndividualMeterData;
+  DeserializationError error = deserializeJson(jsonIndividualMeterData, payloadString);
+  if (error) {
+    logger.debug("Parsing individual power meter input failed: %s", error.c_str());
+    return;
+  }
+  float powerReading = jsonIndividualMeterData[appliance.jsonFieldName];  // 123.4
+
+  // logger.debug("Individual power meter topic [%s], path [%s] -> power: %.2f W", topicString.c_str(), json_field.c_str(), individual_power);
+
+  float correction = 0;
+  if (powerReading >= appliance.detectionThreshold) {
+    // appliance is ON, update the worst-case power consumption
+    correction = appliance.maxPower - powerReading;  // 900 W (max) - 35 W (measured) = 865 W (correction)
+    // logger.debug("Appliance #%d is ON, individual power %.2f W >= detection threshold %.2f W, setting worst-case power consumption correction to %.2f
+    // W",
+    //             i + 1, individual_power, detection_threshold, correction);
+    // logger.debug("  (appliance max power %.2f W - individual power %.2f W = correction %.2f W)", appliance.maxPower, individual_power,
+    // correction);
+  }
+  // applianceWorstCaseCorrection[i] = correction;
+}
+
+// handle message arrived
+void MQTTcallback(char* topic, byte* payload, unsigned int length) {
+  String topicString = String(topic);
+  String payloadString = "";
+  for (int i = 0; i < length; i++) {
+    payloadString += (char)payload[i];
+  }
+
+  // logger.debug("Message arrived on topic [" + topicString + "] Payload: [" + payloadString + "]");
+  if (topicString == MQTT_CONFIGURATION_TOPIC) {
+    parseJsonConfig(payloadString);
+  } else if (topicString == mqttTopicMainElectricityMeterPower) {
+    handleMainElectricityMeterUpdate(payloadString);
+  } else {
+    // try to find individual power meter topics
+    bool found = false;
+    for (int i = 0; i < appliances.size(); i++) {
+      Appliance appliance = appliances[i];
+      if (topicString == appliance.jsonTopicName) {
+        found = true;
+        handleIndividualPowerMeterUpdate(appliance, payloadString);
+      }
+    }
+    if (!found) {
+      logger.debug("Unknown topic [%s]", topicString.c_str());
+    }
   }
 }
 
 void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
-  initDisplay();
-  initLVGL();
+  display.init();
   ui_init();
 
-  setLoadingScreenText("Connecting to WiFi");
+  display.setLoadingScreenText("Connecting to WiFi");
 
-  wdtStop();
+  systemLayer.wdtStop();
   wifiManager.setHostname(NETWORK_HOSTNAME);
   if (!wifiManager.getWiFiIsSaved()) {
-    setLoadingScreenText("Starting WiFi AP!");
+    display.setLoadingScreenText("Starting WiFi AP!");
   }
   wifiManager.autoConnect();
-  logResetReason();
-  wdtInit();
+  systemLayer.logResetReason();
+  systemLayer.wdtInit();
+
+  backlight.init();
+  backlight.registerAfterChangeCallback([](int on_off) { homeassistant.publish_backlight(false, on_off); });
 
   // #ifdef USE_WDT
   //   if (esp_reset_reason() == ESP_RST_TASK_WDT) {
@@ -107,43 +255,41 @@ void setup() {
   //   }
   // #endif
 
-  setLoadingScreenText("Connecting to MQTT");
-  initMQTT();
-  reconnectMQTT();
+  display.setLoadingScreenText("Connecting to MQTT");
+  mqttWrapper.init(&MQTTcallback);
 
-  setLoadingScreenText("Enabling OTA");
+  display.setLoadingScreenText("Enabling OTA");
   // enable OTA
   ArduinoOTA.setHostname(NETWORK_HOSTNAME);
   ArduinoOTA.begin();
   ArduinoOTA.onStart([]() {
     logger.debug("OTA Start");
 
-    wdtStop();
+    systemLayer.wdtStop();
 
     backlight.setBacklight(1);
     backlight.stopTimeout();
 
     lv_disp_load_scr(ui_LoadingScreen);
-    setLoadingScreenText("OTA in progress...");
-    refresh_screen();
+    display.setLoadingScreenText("OTA in progress...");
+    display.refresh();
   });
   ArduinoOTA.onEnd([]() { logger.debug("OTA End"); });
 
-  setLoadingScreenText("Publishing HA MQTT config");
+  display.setLoadingScreenText("Publishing HA MQTT config");
   homeassistant.publish_backlight(true, 0);
-  homeassistant.publish_uptime(true);
+  homeassistant.publish_uptime_if_needed(true);
   homeassistant.publish_warningstate(true, 0);
 
-  setLoadingScreenText("Loading configuration");
-  while (mqttTopicCurrentPower == "") {
-    loop();
-  }
+  // display.setLoadingScreenText("Loading configuration");
+  // while (mqttTopicMainElectricityMeterPower == "") {
+  //   loop();
+  // }
 
-  setLoadingScreenText("Initialization done");
+  display.setLoadingScreenText("Initialization done");
 
-  updateCurrentPower();
-  lv_disp_load_scr(ui_OKScreen);
-  refresh_screen();
+  display.updatePowerReading(main_electricity_meter.getMaxPower(), realPowerReading);
+  display.refresh();
 
   logger.debug("Setup done, version %s", VERSION);
 }
@@ -152,25 +298,9 @@ void loop() {
   ArduinoOTA.handle();
   mqttClient.loop();
   backlight.loop();
+  mqttWrapper.loop();
 
-  if (mqttTimeout.expired()) {
-    // logger.debug("MQTT timeout, reconnecting");
-    // mqttClient.disconnect();
-    // mqttTimeout.stop();
-    logger.debug("No MQTT message arrived for %d s, connected=%d, state=%d", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS, mqttClient.connected(),
-                 mqttClient.state());
-
-    if (WiFi.status() == WL_CONNECTED && !mqttClient.connected()) {
-      logger.debug("MQTT not connected, reconnecting");
-      reconnectMQTT();
-    } else {
-      logger.debug("Fully rebooting after 60 seconds", mqttTimeout.limitMillis() / SECONDS_TO_MILLIS);
-      delay(60 * SECONDS_TO_MILLIS);
-      logger.debug("rebooting now");
-      ESP.restart();
-    }
-  }
-  refresh_screen();
-  homeassistant.publish_uptime(false);
+  display.refresh();
+  homeassistant.publish_uptime_if_needed(false);
   delay(5 * MILLIS);
 }

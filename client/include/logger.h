@@ -1,5 +1,5 @@
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <Arduino.h>
 #include <Syslog.h>
@@ -25,6 +25,4 @@ class Logger {
   bool syslogEnabled;
 };
 
-extern Logger logger;
-
-#endif  // DEBUG_H
+#endif  // LOGGER_H

@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "logger.h"
 
 Logger::Logger(WiFiUDP& udpClient, Syslog& syslog) : udpClient(udpClient), syslog(syslog), debugEnabled(false), syslogEnabled(false) {
 #ifdef DEBUG
