@@ -290,6 +290,26 @@ lv_obj_set_style_pad_right(ui_LabelAppliance12, 0, LV_PART_MAIN| LV_STATE_DEFAUL
 lv_obj_set_style_pad_top(ui_LabelAppliance12, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_pad_bottom(ui_LabelAppliance12, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 
+ui_ArcWorstCaseWattsWarning = lv_arc_create(ui_WarningScreen);
+lv_obj_set_width( ui_ArcWorstCaseWattsWarning, 120);
+lv_obj_set_height( ui_ArcWorstCaseWattsWarning, 120);
+lv_obj_set_x( ui_ArcWorstCaseWattsWarning, 0 );
+lv_obj_set_y( ui_ArcWorstCaseWattsWarning, 2 );
+lv_obj_set_align( ui_ArcWorstCaseWattsWarning, LV_ALIGN_BOTTOM_MID );
+lv_obj_add_flag( ui_ArcWorstCaseWattsWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
+lv_obj_clear_flag( ui_ArcWorstCaseWattsWarning, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
+lv_arc_set_value(ui_ArcWorstCaseWattsWarning, 100);
+lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0x400000), LV_PART_MAIN | LV_STATE_DEFAULT ); 
+lv_obj_set_style_arc_opa(ui_ArcWorstCaseWattsWarning, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0x804040), LV_PART_INDICATOR | LV_STATE_DEFAULT );
+lv_obj_set_style_arc_opa(ui_ArcWorstCaseWattsWarning, 255, LV_PART_INDICATOR| LV_STATE_DEFAULT);
+
+lv_obj_set_style_bg_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_ArcWorstCaseWattsWarning, 0, LV_PART_KNOB| LV_STATE_DEFAULT); // transparent
+
+
+
 ui_ArcCurrentWattsWarning = lv_arc_create(ui_WarningScreen);
 lv_obj_set_width( ui_ArcCurrentWattsWarning, 120);
 lv_obj_set_height( ui_ArcCurrentWattsWarning, 120);
@@ -300,13 +320,13 @@ lv_obj_add_flag( ui_ArcCurrentWattsWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Fl
 lv_obj_clear_flag( ui_ArcCurrentWattsWarning, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
 lv_arc_set_value(ui_ArcCurrentWattsWarning, 15);
 lv_obj_set_style_arc_color(ui_ArcCurrentWattsWarning, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_arc_opa(ui_ArcCurrentWattsWarning, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_arc_opa(ui_ArcCurrentWattsWarning, 0, LV_PART_MAIN| LV_STATE_DEFAULT); // transparent
 
 lv_obj_set_style_arc_color(ui_ArcCurrentWattsWarning, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR | LV_STATE_DEFAULT );
 lv_obj_set_style_arc_opa(ui_ArcCurrentWattsWarning, 255, LV_PART_INDICATOR| LV_STATE_DEFAULT);
 
 lv_obj_set_style_bg_color(ui_ArcCurrentWattsWarning, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT );
-lv_obj_set_style_bg_opa(ui_ArcCurrentWattsWarning, 0, LV_PART_KNOB| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_opa(ui_ArcCurrentWattsWarning, 0, LV_PART_KNOB| LV_STATE_DEFAULT); // transparent
 
 ui_LabelWattsUsedWarning = lv_label_create(ui_ArcCurrentWattsWarning);
 lv_obj_set_width( ui_LabelWattsUsedWarning, LV_SIZE_CONTENT);  /// 1
@@ -314,25 +334,6 @@ lv_obj_set_height( ui_LabelWattsUsedWarning, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_align( ui_LabelWattsUsedWarning, LV_ALIGN_CENTER );
 lv_label_set_text(ui_LabelWattsUsedWarning,"??? W");
 lv_obj_set_style_text_font(ui_LabelWattsUsedWarning, &ui_font_Calibri16, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_ArcWorstCaseWattsWarning = lv_arc_create(ui_WarningScreen);
-lv_obj_set_width( ui_ArcWorstCaseWattsWarning, 120);
-lv_obj_set_height( ui_ArcWorstCaseWattsWarning, 120);
-lv_obj_set_x( ui_ArcWorstCaseWattsWarning, 0 );
-lv_obj_set_y( ui_ArcWorstCaseWattsWarning, 2 );
-lv_obj_set_align( ui_ArcWorstCaseWattsWarning, LV_ALIGN_BOTTOM_MID );
-lv_obj_add_flag( ui_ArcWorstCaseWattsWarning, LV_OBJ_FLAG_EVENT_BUBBLE );   /// Flags
-lv_obj_clear_flag( ui_ArcWorstCaseWattsWarning, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE );    /// Flags
-lv_arc_set_value(ui_ArcWorstCaseWattsWarning, 100);
-lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0x400000), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_arc_opa(ui_ArcWorstCaseWattsWarning, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR | LV_STATE_DEFAULT );
-lv_obj_set_style_arc_opa(ui_ArcWorstCaseWattsWarning, 255, LV_PART_INDICATOR| LV_STATE_DEFAULT);
-
-lv_obj_set_style_bg_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(0xFFFFFF), LV_PART_KNOB | LV_STATE_DEFAULT );
-lv_obj_set_style_bg_opa(ui_ArcWorstCaseWattsWarning, 0, LV_PART_KNOB| LV_STATE_DEFAULT);
-
 
 ui_Label2 = lv_label_create(ui_WarningScreen);
 lv_obj_set_width( ui_Label2, LV_SIZE_CONTENT);  /// 1

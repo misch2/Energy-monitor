@@ -174,13 +174,6 @@ bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter
   float currentWatts = meter.powerReading.getMovingAverage(3);
   float maxUsedWatts = meter.powerReading.getMovingMax(5);
 
-  float remainingWatts = meter.getMaxAllowedWatts() - maxUsedWatts;  // time filtered and rounded down value for the warning message, to prevent flickering
-  float displayedRemainingWatts = ceil(remainingWatts / 50) * 50;    // round down to multiples of 50
-
-  // non-filtered and more precise value for the gauge
-  lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
-  lv_arc_set_value(ui_ArcCurrentWattsWarning, currentWatts);
-
   // Calculate worst-case power consumption based on the individual appliances
   float currentWorstCaseWatts = currentWatts;
   for (auto& appliance : appliances) {
@@ -189,6 +182,17 @@ bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter
       currentWorstCaseWatts += appliance.maxPower;
     }
   }
+
+  float usedWattsForDisplay = max(currentWatts, currentWorstCaseWatts);     // or just currentWatts?
+  float maxUsedWattsForDisplay = max(maxUsedWatts, currentWorstCaseWatts);  // or just maxUsedWatts?
+
+  float remainingWatts =
+      meter.getMaxAllowedWatts() - maxUsedWattsForDisplay;         // time filtered and rounded down value for the warning message, to prevent flickering
+  float displayedRemainingWatts = ceil(remainingWatts / 50) * 50;  // round down to multiples of 50
+
+  // non-filtered and more precise value for the gauge
+  lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
+  lv_arc_set_value(ui_ArcCurrentWattsWarning, currentWatts);
 
   lv_arc_set_value(ui_ArcWorstCaseWattsOK, currentWorstCaseWatts);
   lv_arc_set_value(ui_ArcWorstCaseWattsWarning, currentWorstCaseWatts);
@@ -201,7 +205,7 @@ bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter
   lv_label_set_text(ui_LabelRemainingWattsWarning, label.c_str());
 
   label = "";
-  label += String(currentWatts, 0) + " W";
+  label += String(usedWattsForDisplay, 0) + " W";
   lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
   lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
 
