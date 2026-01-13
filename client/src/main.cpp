@@ -34,15 +34,15 @@ WiFiManager wifiManager;
 WiFiClient wifiClient;
 WiFiUDP udpClient;
 LED leds;
-Backlight backlight;
 Syslog syslog(udpClient, SYSLOG_SERVER, SYSLOG_PORT, SYSLOG_MYHOSTNAME, SYSLOG_MYAPPNAME, LOG_KERN);
 Logger logger(udpClient, syslog);
+Backlight backlight(logger);
 PubSubClient mqttClient(wifiClient);
 HomeAssistant homeassistant(mqttClient);
 MQTTClientWrapper mqttWrapper(mqttClient, logger);
 SystemLayer systemLayer(logger);
 ApplianceList appliances;
-Display display(leds, backlight, logger, systemLayer, appliances);
+Display display(leds, backlight, logger, systemLayer);
 Timemark displayRecalculate(1 * SECONDS_TO_MILLIS);
 ElectricityMeter mainMeter;
 
@@ -260,7 +260,7 @@ void loop() {
 
   if (displayRecalculate.expired()) {
     // update the display from the accumulated power reading
-    if (display.updateFromPowerReading(mainMeter)) {
+    if (display.updateFromPowerReading(appliances, mainMeter)) {
       homeassistant.publish_warningstate(false, 0);
     } else {
       homeassistant.publish_warningstate(false, 1);

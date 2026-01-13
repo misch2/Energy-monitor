@@ -19,7 +19,6 @@ class Appliance {
   String jsonTopicName;
   String jsonFieldName;
   float detectionThreshold;
-
   PowerReading powerReading;
 
   Appliance() : maxPower(0), hasIndividualPowerMeter(false), detectionThreshold(0) {}

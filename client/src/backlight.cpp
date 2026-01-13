@@ -2,10 +2,13 @@
 
 #define SECONDS_TO_MILLIS 1000
 
-Backlight::Backlight() : backlight_on(0), backlightTimeout(30 * SECONDS_TO_MILLIS) {}
+Backlight::Backlight(Logger& logger) : logger(logger), backlightState(false), backlightTimeout(30 * SECONDS_TO_MILLIS) {}
 
-void Backlight::setBacklight(int on_off) {  // 0 - 255
-  if (backlight_on == on_off) {
+void Backlight::setBacklight(bool on_off) {
+  // logger.debug("Backlight::setBacklight called with %d", on_off);
+  if (backlightState == on_off) {
+    // logger.debug("Backlight state unchanged (%d)", on_off);
+    // no change needed
     return;
   }
 
@@ -14,17 +17,17 @@ void Backlight::setBacklight(int on_off) {  // 0 - 255
   }
 
   // logger.debug("Setting backlight to %d", on_off);
-  if (on_off == 0) {
+  if (on_off == false) {
     ledcWrite(ledc_channel, 0);
   } else {
     ledcWrite(ledc_channel, 255);
   }
-  backlight_on = on_off;
+  backlightState = on_off;
 }
 
 void Backlight::toggleBacklightManually() {
-  // logger.debug("Setting backlight manually to %d", !backlight_on);
-  setBacklight(!backlight_on);
+  // logger.debug("Setting backlight manually to %d", !backlightState);
+  setBacklight(!backlightState);
   backlightTimeout.stop();
 }
 
@@ -33,13 +36,17 @@ void Backlight::init() {
   pinMode(ledc_pin, OUTPUT);
   ledcAttachPin(ledc_pin, ledc_channel);
   ledcSetup(ledc_channel, 5000, 8);
-  setBacklight(1);
+  // logger.debug("Backlight initialized on pin %d, channel %d", ledc_pin, ledc_channel);
+
+  backlightState = false;
+  setBacklight(true);
+
   backlightTimeout.start();  // turn off backlight after 30 seconds
 }
 
 void Backlight::loop() {
   if (backlightTimeout.expired()) {
-    setBacklight(0);
+    setBacklight(false);
     backlightTimeout.stop();
   }
 }

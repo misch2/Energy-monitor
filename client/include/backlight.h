@@ -4,16 +4,18 @@
 #include <Arduino.h>
 #include <Timemark.h>
 
+#include "logger.h"
+
 class Backlight {
  private:
-  int backlight_on;
+  Logger& logger;
+  bool backlightState;
   Timemark backlightTimeout;
-  std::function<void(int)> afterChangeCallback;
+  std::function<void(bool)> afterChangeCallback;
 
  public:
-  Backlight();
-
-  void setBacklight(int on_off);
+  Backlight(Logger& logger);
+  void setBacklight(bool on_off);
   void toggleBacklightManually();
   void init();
   void loop();
@@ -22,8 +24,8 @@ class Backlight {
   }
 
   // Getters for external access if needed
-  int isBacklightOn() const {
-    return backlight_on;
+  bool isBacklightOn() const {
+    return backlightState;
   }
   Timemark& getTimeout() {
     return backlightTimeout;

@@ -127,7 +127,8 @@ void Display::setLoadingScreenText(const char* text) {
   loop();
 }
 
-bool Display::showApplianceLabel(lv_obj_t* ui_element, int number, int remainingWatts) {
+// returns true if a warning label was shown
+bool Display::showApplianceLabel(lv_obj_t* ui_element, ApplianceList appliances, int number, float remainingWatts) {
   // logger.debug("in showApplianceLabel(%d, %d)", number, remainingWatts);
 
   if (number > appliances.size()) {
@@ -138,17 +139,19 @@ bool Display::showApplianceLabel(lv_obj_t* ui_element, int number, int remaining
 
   Appliance appliance = appliances[number - 1];
   if (remainingWatts > appliance.maxPower) {
-    // logger.debug("Appliance %d compliant, remainingWatts %d > %d, skipping this label", number, remainingWatts, (int)appliance["power"]);
+    // logger.debug("Appliance %d compliant, remainingWatts %.2f > %.2f, skipping this label", number, remainingWatts, appliance.maxPower);
     lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
     return false;
   };
 
   if (appliance.isOn()) {
     // display it too, but in a dimmed color
-    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_element, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
   } else {
     // normal bright warning color
     lv_obj_set_style_bg_color(ui_element, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_element, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
   }
 
   String name = appliance.nameAccusative;
@@ -166,12 +169,13 @@ void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
   lv_arc_set_range(ui_ArcWorstCaseWattsWarning, 0, maxPowerWatts);
 }
 
-bool Display::updateFromPowerReading(ElectricityMeter meter) {
+// returns true if no warnings are displayed
+bool Display::updateFromPowerReading(ApplianceList appliances, ElectricityMeter meter) {
   float currentWatts = meter.powerReading.getMovingAverage(3);
   float maxUsedWatts = meter.powerReading.getMovingMax(5);
 
   float remainingWatts = meter.getMaxAllowedWatts() - maxUsedWatts;  // time filtered and rounded down value for the warning message, to prevent flickering
-  int displayedRemainingWatts = (int)(remainingWatts / 50) * 50;     // round down to multiples of 50
+  float displayedRemainingWatts = ceil(remainingWatts / 50) * 50;    // round down to multiples of 50
 
   // non-filtered and more precise value for the gauge
   lv_arc_set_value(ui_ArcCurrentWattsOK, currentWatts);
@@ -180,39 +184,40 @@ bool Display::updateFromPowerReading(ElectricityMeter meter) {
   // Calculate worst-case power consumption based on the individual appliances
   float currentWorstCaseWatts = currentWatts;
   for (auto appliance : appliances) {
-    if (appliance.isOn()) {
-      currentWorstCaseWatts += appliance.maxPower - appliance.powerReading.getMovingMax(3);
+    if (appliance.hasIndividualPowerMeter && appliance.isOn()) {
+      currentWorstCaseWatts -= appliance.powerReading.getMovingMax(3);
+      currentWorstCaseWatts += appliance.maxPower;
     }
   }
 
   lv_arc_set_value(ui_ArcWorstCaseWattsOK, currentWorstCaseWatts);
   lv_arc_set_value(ui_ArcWorstCaseWattsWarning, currentWorstCaseWatts);
 
-  String label = "";
-  label += displayedRemainingWatts;
-  label += " W";
+  String label;
+
+  label = "";
+  label += String(displayedRemainingWatts, 0) + " W";
   lv_label_set_text(ui_LabelRemainingWattsOK, label.c_str());
   lv_label_set_text(ui_LabelRemainingWattsWarning, label.c_str());
 
   label = "";
-  label += (int)(currentWatts);
-  label += " W";
+  label += String(currentWatts, 0) + " W";
   lv_label_set_text(ui_LabelWattsUsedOK, label.c_str());
   lv_label_set_text(ui_LabelWattsUsedWarning, label.c_str());
 
   bool displayed_warning = false;
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance1, 1, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance2, 2, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance3, 3, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance4, 4, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance5, 5, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance6, 6, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance7, 7, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance8, 8, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance9, 9, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance10, 10, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance11, 11, displayedRemainingWatts);
-  displayed_warning |= showApplianceLabel(ui_LabelAppliance12, 12, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance1, appliances, 1, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance2, appliances, 2, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance3, appliances, 3, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance4, appliances, 4, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance5, appliances, 5, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance6, appliances, 6, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance7, appliances, 7, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance8, appliances, 8, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance9, appliances, 9, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance10, appliances, 10, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance11, appliances, 11, displayedRemainingWatts);
+  displayed_warning |= showApplianceLabel(ui_LabelAppliance12, appliances, 12, displayedRemainingWatts);
 
   if (displayed_warning) {
     lv_disp_load_scr(ui_WarningScreen);
