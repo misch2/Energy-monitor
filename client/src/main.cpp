@@ -26,6 +26,7 @@
 #include "mqtt.h"
 #include "power.h"
 #include "system.h"
+#include "ui_colors.h"
 
 #define SECONDS_TO_MILLIS 1000
 #define MILLIS 1
@@ -42,12 +43,15 @@ HomeAssistant homeassistant(mqttClient);
 MQTTClientWrapper mqttWrapper(mqttClient, logger);
 SystemLayer systemLayer(logger);
 ApplianceList appliances;
-Display display(leds, backlight, logger, systemLayer);
+UIColors uiColors;
+Display display(leds, backlight, logger, systemLayer, uiColors);
 Timemark displayRecalculate(1 * SECONDS_TO_MILLIS);
 ElectricityMeter mainMeter;
 
 JsonDocument jsonConfig;
 String mqttTopicMainElectricityMeterPower = "";
+bool demoMode = false;
+Timemark demoModeTimer(10 * SECONDS_TO_MILLIS);
 
 void test1() {
   logger.debug("here 1");
@@ -91,6 +95,43 @@ void test2() {
   }
 }
 
+uint32_t _htmlToHexColor(const char* htmlColor) {
+  if (htmlColor == nullptr) {
+    logger.debug("HTML color is null");
+    return 0xF000F0;
+  }
+  if (htmlColor[0] != '#' || strlen(htmlColor) != 7) {
+    logger.debug("Invalid HTML color: %s", htmlColor);
+    return 0xF000F0;
+  }
+  uint32_t color = (uint32_t)strtol(htmlColor + 1, nullptr, 16);
+  return color;
+}
+
+void parseUIColors(JsonObject colorsJson) {
+  logger.debug("Parsing UI colors from JSON config");
+
+  // copy all from json to uiColors
+  uiColors.okState.panelTop.bg = _htmlToHexColor(colorsJson["okState"]["panelTop"]["bg"]);
+  uiColors.okState.panelTop.border = _htmlToHexColor(colorsJson["okState"]["panelTop"]["border"]);
+  uiColors.okState.labels.text = _htmlToHexColor(colorsJson["okState"]["labels"]["text"]);
+  uiColors.okState.arcWatts.main = _htmlToHexColor(colorsJson["okState"]["arcWatts"]["main"]);
+  uiColors.okState.arcWatts.worstCaseIndicator = _htmlToHexColor(colorsJson["okState"]["arcWatts"]["worstCaseIndicator"]);
+  uiColors.okState.arcWatts.normalIndicator = _htmlToHexColor(colorsJson["okState"]["arcWatts"]["normalIndicator"]);
+  uiColors.warningState.panelTop.bg = _htmlToHexColor(colorsJson["warningState"]["panelTop"]["bg"]);
+  uiColors.warningState.panelTop.border = _htmlToHexColor(colorsJson["warningState"]["panelTop"]["border"]);
+  uiColors.warningState.labels.text = _htmlToHexColor(colorsJson["warningState"]["labels"]["text"]);
+  uiColors.warningState.labelsApplianceNormal.text = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceNormal"]["text"]);
+  uiColors.warningState.labelsApplianceNormal.bg = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceNormal"]["bg"]);
+  uiColors.warningState.labelsApplianceNormal.border = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceNormal"]["border"]);
+  uiColors.warningState.labelsApplianceDimmed.text = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceDimmed"]["text"]);
+  uiColors.warningState.labelsApplianceDimmed.bg = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceDimmed"]["bg"]);
+  uiColors.warningState.labelsApplianceDimmed.border = _htmlToHexColor(colorsJson["warningState"]["labelsApplianceDimmed"]["border"]);
+  uiColors.warningState.arcWatts.main = _htmlToHexColor(colorsJson["warningState"]["arcWatts"]["main"]);
+  uiColors.warningState.arcWatts.worstCaseIndicator = _htmlToHexColor(colorsJson["warningState"]["arcWatts"]["worstCaseIndicator"]);
+  uiColors.warningState.arcWatts.normalIndicator = _htmlToHexColor(colorsJson["warningState"]["arcWatts"]["normalIndicator"]);
+}
+
 void parseJsonConfig(String payloadString) {
   logger.debug("Parsing config...");
   DeserializationError error = deserializeJson(jsonConfig, payloadString);
@@ -104,6 +145,13 @@ void parseJsonConfig(String payloadString) {
   // String tmp = "";
   // serializeJsonPretty(jsonConfig, tmp);
   // logger.debug(tmp.c_str());
+
+  demoMode = jsonConfig["settings"]["demo_mode"] | false;
+
+  if (jsonConfig["settings"]["colors"].is<JsonObject>()) {
+    parseUIColors(jsonConfig["settings"]["colors"]);
+    display.applyUIColors();
+  }
 
   mainMeter.setNominalVoltage((int)jsonConfig["electricity"]["meter"]["voltage"]);
   mainMeter.setMaxCurrent((int)jsonConfig["electricity"]["meter"]["current"]);
@@ -143,10 +191,19 @@ void parseJsonConfig(String payloadString) {
 }
 
 void handleMainElectricityMeterUpdate(String payloadString) {
+  if (demoMode) {
+    // in demo mode, ignore real power meter updates
+    return;
+  }
   mainMeter.powerReading.update(payloadString.toFloat());
 }
 
 void handleIndividualPowerMeterUpdate(Appliance& appliance, String payloadString) {
+  if (demoMode) {
+    // in demo mode, ignore real power meter updates
+    return;
+  }
+
   // logger.debug("Handling individual power meter topic [%s]", topicString.c_str());
 
   // parse payload as JSON and get the value at json_field (e.g. { "power": 123.4 } and json_field = "power" -> 123.4)
@@ -185,6 +242,39 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
     }
     if (!found) {
       logger.debug("Unknown topic [%s]", topicString.c_str());
+    }
+  }
+}
+
+void handleDemoMode() {
+  // in demo mode, periodically update power readings with random values
+
+  if (!(demoMode && demoModeTimer.expired())) {
+    return;
+  }
+
+  logger.debug("Demo mode: updating power readings with random values");
+
+  float mainMeterPower = random(0, (int)mainMeter.getMaxAllowedWatts());
+  mainMeter.powerReading.update(mainMeterPower);
+
+  float totalAppliancePower = 0;
+  for (int i = 0; i < appliances.size(); i++) {
+    Appliance& appliance = appliances[i];
+    if (appliance.hasIndividualPowerMeter) {
+      float power = random(1, (int)appliance.maxPower);
+
+      if (random(0, 10) <= 2) {  // set to zero in 20% of cases
+        power = 0;
+      }
+
+      totalAppliancePower += power;
+      if (totalAppliancePower < mainMeterPower) {
+        // only set appliance power if total doesn't exceed main meter power
+        appliance.powerReading.update(power);
+      } else {
+        appliance.powerReading.update(0);
+      }
     }
   }
 }
@@ -248,7 +338,9 @@ void setup() {
   // }
 
   display.setLoadingScreenText("Initialization done");
+
   displayRecalculate.start();
+  demoModeTimer.start();
 
   logger.debug("Setup done, version %s", VERSION);
 }
@@ -266,8 +358,10 @@ void loop() {
     } else {
       homeassistant.publish_warningstate(false, 1);
     }
-    displayRecalculate.start();
   }
+
+  handleDemoMode();
+
   display.loop();
 
   homeassistant.publish_uptime_if_needed(false);

@@ -13,6 +13,7 @@
 #include "power.h"
 #include "system.h"
 #include "ui/ui.h"
+#include "ui_colors.h"
 
 class Display {
  private:
@@ -20,6 +21,7 @@ class Display {
   Backlight& backlight;
   Logger& logger;
   SystemLayer& systemLayer;
+  UIColors& uiColors;
 
   /* LOGICAL screen orientation (i.e. rotation dependent) */
   static const uint16_t screenWidth = 320;
@@ -35,14 +37,15 @@ class Display {
   TAMC_GT911 tp = TAMC_GT911(TOUCH_SDA, TOUCH_SCL, TOUCH_INT, TOUCH_RST, screenWidth, screenHeight);  // touch panel
 
  public:
-  Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer)
-      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer) {}
+  Display(LED& leds, Backlight& backlight, Logger& logger, SystemLayer& systemLayer, UIColors& uiColors)
+      : leds(leds), backlight(backlight), logger(logger), systemLayer(systemLayer), uiColors(uiColors) {}
   void init();
   void loop();
   void setLoadingScreenText(const char* text);
   bool showApplianceLabel(lv_obj_t* ui_element, ApplianceList& appliances, int number, float remainingWatts);
   void handleElectricityMeterConfigChange(float maxPowerWatts);
   bool updateFromPowerReading(ApplianceList& appliances, ElectricityMeter& meter);
+  void applyUIColors();
 
  private:
   // static methods to be used as lvgl callbacks

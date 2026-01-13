@@ -146,12 +146,14 @@ bool Display::showApplianceLabel(lv_obj_t* ui_element, ApplianceList& appliances
 
   if (appliance.isOn()) {
     // display it too, but in a dimmed color
-    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_element, lv_color_hex(0x404040), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceDimmed.text), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceDimmed.bg), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceDimmed.border), LV_PART_MAIN | LV_STATE_DEFAULT);
   } else {
     // normal bright warning color
-    lv_obj_set_style_bg_color(ui_element, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(ui_element, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceNormal.text), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceNormal.bg), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_element, lv_color_hex(uiColors.warningState.labelsApplianceNormal.border), LV_PART_MAIN | LV_STATE_DEFAULT);
   }
 
   String name = appliance.nameAccusative;
@@ -232,4 +234,46 @@ bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter
 
   lv_disp_load_scr(ui_OKScreen);
   return 1;
+}
+
+void Display::applyUIColors() {
+  lv_style_selector_t selector = LV_PART_MAIN | LV_STATE_DEFAULT;
+
+  lv_obj_set_style_bg_color(ui_PanelTopOK, lv_color_hex(uiColors.okState.panelTop.bg), selector);
+  lv_obj_set_style_border_color(ui_PanelTopOK, lv_color_hex(uiColors.okState.panelTop.border), selector);
+
+  lv_obj_set_style_text_color(ui_Label3, lv_color_hex(uiColors.okState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_Label5, lv_color_hex(uiColors.okState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_LabelWattsUsedOK, lv_color_hex(uiColors.okState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_LabelRemainingWattsOK, lv_color_hex(uiColors.okState.labels.text), selector);
+
+  lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsOK, lv_color_hex(uiColors.okState.arcWatts.main), selector);
+  lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsOK, lv_color_hex(uiColors.okState.arcWatts.worstCaseIndicator), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+  lv_obj_set_style_arc_color(ui_ArcCurrentWattsOK, lv_color_hex(uiColors.okState.arcWatts.normalIndicator), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+  lv_obj_set_style_bg_color(ui_PanelTopWarning, lv_color_hex(uiColors.warningState.panelTop.bg), selector);
+  lv_obj_set_style_border_color(ui_PanelTopWarning, lv_color_hex(uiColors.warningState.panelTop.border), selector);
+
+  lv_obj_set_style_text_color(ui_Label1, lv_color_hex(uiColors.warningState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_Label2, lv_color_hex(uiColors.warningState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_Label4, lv_color_hex(uiColors.warningState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_LabelWattsUsedWarning, lv_color_hex(uiColors.warningState.labels.text), selector);
+  lv_obj_set_style_text_color(ui_LabelRemainingWattsWarning, lv_color_hex(uiColors.warningState.labels.text), selector);
+
+  // appliances 1-12
+  for (lv_obj_t* ui_object : {ui_LabelAppliance1, ui_LabelAppliance2, ui_LabelAppliance3, ui_LabelAppliance4, ui_LabelAppliance5, ui_LabelAppliance6,
+                              ui_LabelAppliance7, ui_LabelAppliance8, ui_LabelAppliance9, ui_LabelAppliance10, ui_LabelAppliance11, ui_LabelAppliance12}) {
+    lv_obj_set_style_text_color(ui_object, lv_color_hex(uiColors.warningState.labelsApplianceNormal.text), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_object, lv_color_hex(uiColors.warningState.labelsApplianceNormal.bg), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_object, lv_color_hex(uiColors.warningState.labelsApplianceNormal.border), LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
+
+  lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(uiColors.warningState.arcWatts.main), selector);
+  lv_obj_set_style_arc_color(ui_ArcWorstCaseWattsWarning, lv_color_hex(uiColors.warningState.arcWatts.worstCaseIndicator),
+                             LV_PART_INDICATOR | LV_STATE_DEFAULT);
+  lv_obj_set_style_arc_color(ui_ArcCurrentWattsWarning, lv_color_hex(uiColors.warningState.arcWatts.normalIndicator), LV_PART_INDICATOR | LV_STATE_DEFAULT);
+
+  /*
+  lv_obj_set_style_bg_color(ui_TextAreaAppliancesWarning, lv_color_hex(0xA80000), LV_PART_MAIN | LV_STATE_DEFAULT );
+   */
 }
