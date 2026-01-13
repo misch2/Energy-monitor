@@ -128,7 +128,7 @@ void Display::setLoadingScreenText(const char* text) {
 }
 
 // returns true if a warning label was shown
-bool Display::showApplianceLabel(lv_obj_t* ui_element, ApplianceList appliances, int number, float remainingWatts) {
+bool Display::showApplianceLabel(lv_obj_t* ui_element, ApplianceList& appliances, int number, float remainingWatts) {
   // logger.debug("in showApplianceLabel(%d, %d)", number, remainingWatts);
 
   if (number > appliances.size()) {
@@ -137,7 +137,7 @@ bool Display::showApplianceLabel(lv_obj_t* ui_element, ApplianceList appliances,
     return false;
   }
 
-  Appliance appliance = appliances[number - 1];
+  Appliance& appliance = appliances[number - 1];
   if (remainingWatts > appliance.maxPower) {
     // logger.debug("Appliance %d compliant, remainingWatts %.2f > %.2f, skipping this label", number, remainingWatts, appliance.maxPower);
     lv_obj_add_flag(ui_element, LV_OBJ_FLAG_HIDDEN);
@@ -170,7 +170,7 @@ void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
 }
 
 // returns true if no warnings are displayed
-bool Display::updateFromPowerReading(ApplianceList appliances, ElectricityMeter meter) {
+bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter& meter) {
   float currentWatts = meter.powerReading.getMovingAverage(3);
   float maxUsedWatts = meter.powerReading.getMovingMax(5);
 
@@ -183,7 +183,7 @@ bool Display::updateFromPowerReading(ApplianceList appliances, ElectricityMeter 
 
   // Calculate worst-case power consumption based on the individual appliances
   float currentWorstCaseWatts = currentWatts;
-  for (auto appliance : appliances) {
+  for (auto& appliance : appliances) {
     if (appliance.hasIndividualPowerMeter && appliance.isOn()) {
       currentWorstCaseWatts -= appliance.powerReading.getMovingMax(3);
       currentWorstCaseWatts += appliance.maxPower;

@@ -146,7 +146,7 @@ void handleMainElectricityMeterUpdate(String payloadString) {
   mainMeter.powerReading.update(payloadString.toFloat());
 }
 
-void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString) {
+void handleIndividualPowerMeterUpdate(Appliance& appliance, String payloadString) {
   // logger.debug("Handling individual power meter topic [%s]", topicString.c_str());
 
   // parse payload as JSON and get the value at json_field (e.g. { "power": 123.4 } and json_field = "power" -> 123.4)
@@ -157,6 +157,7 @@ void handleIndividualPowerMeterUpdate(Appliance appliance, String payloadString)
     return;
   }
   appliance.powerReading.update(jsonIndividualMeterData[appliance.jsonFieldName]);
+  // logger.debug("Appliance [%s] power updated to %.2f W", appliance.nameNominative.c_str(), appliance.powerReading.getLast());
 }
 
 // handle message arrived
@@ -176,7 +177,7 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
     // try to find individual power meter topics
     bool found = false;
     for (int i = 0; i < appliances.size(); i++) {
-      Appliance appliance = appliances[i];
+      Appliance& appliance = appliances[i];
       if (topicString == appliance.jsonTopicName) {
         found = true;
         handleIndividualPowerMeterUpdate(appliance, payloadString);

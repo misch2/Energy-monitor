@@ -40,9 +40,9 @@ class Display {
   void init();
   void loop();
   void setLoadingScreenText(const char* text);
-  bool showApplianceLabel(lv_obj_t* ui_element, ApplianceList appliances, int number, float remainingWatts);
+  bool showApplianceLabel(lv_obj_t* ui_element, ApplianceList& appliances, int number, float remainingWatts);
   void handleElectricityMeterConfigChange(float maxPowerWatts);
-  bool updateFromPowerReading(ApplianceList appliances, ElectricityMeter meter);
+  bool updateFromPowerReading(ApplianceList& appliances, ElectricityMeter& meter);
 
  private:
   // static methods to be used as lvgl callbacks
