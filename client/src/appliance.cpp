@@ -22,5 +22,14 @@ bool Appliance::isOn() {
   }
 
   float currentPower = powerReading.getLast();
-  return currentPower >= detectionThreshold;
+  bool ret = currentPower >= detectionThreshold;
+
+  if (ret && !wasOn) {
+    logger.debug("Appliance '%s' turned ON, power=%.2fW (threshold=%.2fW), applying max=%.2fW", nameNominative.c_str(), currentPower, detectionThreshold, maxPower);
+  } else if (!ret && wasOn) {
+    logger.debug("Appliance '%s' turned OFF, power=%.2fW (threshold=%.2fW)", nameNominative.c_str(), currentPower, detectionThreshold);
+  }
+
+  wasOn = ret;
+  return ret;
 }

@@ -26,6 +26,9 @@ class Appliance {
   Appliance(Logger& logger) : logger(logger), maxPower(0), hasIndividualPowerMeter(false), detectionThreshold(0) {}
   void updateFromJson(JsonObjectConst json);
   bool isOn();
+
+ private:
+  bool wasOn = false;
 };
 
 using ApplianceList = std::vector<Appliance>;

@@ -180,6 +180,7 @@ bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter
   float currentWorstCaseWatts = currentWatts;
   for (auto& appliance : appliances) {
     if (appliance.hasIndividualPowerMeter && appliance.isOn()) {
+      // subtract the actual measured power and add the appliance's maximum power instead
       currentWorstCaseWatts -= appliance.powerReading.getMovingMax(3);
       currentWorstCaseWatts += appliance.maxPower;
     }
