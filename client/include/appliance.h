@@ -6,10 +6,12 @@
 
 #include <vector>
 
+#include "logger.h"
 #include "power.h"
 
 class Appliance {
  public:
+  Logger& logger;
   String nameNominative;
   String nameAccusative;
   float maxPower;
@@ -21,21 +23,8 @@ class Appliance {
   float detectionThreshold;
   PowerReading powerReading;
 
-  Appliance() : maxPower(0), hasIndividualPowerMeter(false), detectionThreshold(0) {}
-
-  Appliance(const String& nomName, const String& accName, float pwr)
-      : nameNominative(nomName), nameAccusative(accName), maxPower(pwr), hasIndividualPowerMeter(false), detectionThreshold(0) {}
-
-  Appliance(const String& nomName, const String& accName, float pwr, const String& topic, const String& field, float threshold)
-      : nameNominative(nomName),
-        nameAccusative(accName),
-        maxPower(pwr),
-        hasIndividualPowerMeter(true),
-        jsonTopicName(topic),
-        jsonFieldName(field),
-        detectionThreshold(threshold) {}
-
-  static Appliance fromJson(JsonObjectConst json);
+  Appliance(Logger& logger) : logger(logger), maxPower(0), hasIndividualPowerMeter(false), detectionThreshold(0) {}
+  void updateFromJson(JsonObjectConst json);
   bool isOn();
 };
 

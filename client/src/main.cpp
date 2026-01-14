@@ -53,6 +53,8 @@ String mqttTopicMainElectricityMeterPower = "";
 bool demoMode = false;
 Timemark demoModeTimer(10 * SECONDS_TO_MILLIS);
 
+Timemark safeModeDelayTimer(30 * SECONDS_TO_MILLIS);
+
 void test1() {
   logger.debug("here 1");
   lv_disp_load_scr(ui_OKScreen);
@@ -169,9 +171,10 @@ void parseJsonConfig(String payloadString) {
 
   appliances.clear();
   for (JsonObject applianceJson : appliancesJsonArray) {
-    Appliance appliance = Appliance::fromJson(applianceJson);
-    logger.debug("  Appliance: %s (max power %.2f W)", appliance.nameNominative.c_str(), appliance.maxPower);
+    Appliance appliance = Appliance(logger);
+    appliance.updateFromJson(applianceJson);
     appliances.push_back(appliance);
+    logger.debug("  Appliance: %s (max power %.2f W)", appliance.nameNominative.c_str(), appliance.maxPower);
 
     if (appliance.jsonTopicName != "") {
       String topic = appliance.jsonTopicName;
@@ -283,6 +286,7 @@ void setup() {
   Serial.begin(115200); /* prepare for possible serial debug */
 
   display.init();
+  backlight.init();
   ui_init();
 
   display.setLoadingScreenText("Connecting to WiFi");
@@ -295,19 +299,6 @@ void setup() {
   wifiManager.autoConnect();
   systemLayer.logResetReason();
   systemLayer.wdtInit();
-
-  backlight.init();
-  backlight.registerAfterChangeCallback([](int on_off) { homeassistant.publish_backlight(false, on_off); });
-
-  // #ifdef USE_WDT
-  //   if (esp_reset_reason() == ESP_RST_TASK_WDT) {
-  //     sleepTime = SLEEP_TIME_PERMANENT_ERROR;
-  //     error("Watchdog issue. Please report this to the developer.");
-  //   }
-  // #endif
-
-  display.setLoadingScreenText("Connecting to MQTT");
-  mqttWrapper.init(&MQTTcallback);
 
   display.setLoadingScreenText("Enabling OTA");
   // enable OTA
@@ -326,6 +317,29 @@ void setup() {
     display.loop();
   });
   ArduinoOTA.onEnd([]() { logger.debug("OTA End"); });
+
+  // Now with OTA enabled we should check if the previous reset was due to faulty software and if so then wait before continuing boot
+  if (systemLayer.resetReasonWasFaultySoftware()) {
+    display.setLoadingScreenText("Send OTA within 30s...");
+    while (!safeModeDelayTimer.expired()) {
+      ArduinoOTA.handle();
+      delay(100);
+    }
+    logger.debug("Rebooting after faulty software reset");
+    ESP.restart();
+  }
+
+  backlight.registerAfterChangeCallback([](int on_off) { homeassistant.publish_backlight(false, on_off); });
+
+  // #ifdef USE_WDT
+  //   if (esp_reset_reason() == ESP_RST_TASK_WDT) {
+  //     sleepTime = SLEEP_TIME_PERMANENT_ERROR;
+  //     error("Watchdog issue. Please report this to the developer.");
+  //   }
+  // #endif
+
+  display.setLoadingScreenText("Connecting to MQTT");
+  mqttWrapper.init(&MQTTcallback);
 
   display.setLoadingScreenText("Publishing HA MQTT config");
   homeassistant.publish_backlight(true, 0);

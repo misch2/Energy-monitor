@@ -173,7 +173,7 @@ void Display::handleElectricityMeterConfigChange(float maxPowerWatts) {
 
 // returns true if no warnings are displayed
 bool Display::updateFromPowerReading(ApplianceList& appliances, ElectricityMeter& meter) {
-  float currentWatts = meter.powerReading.getMovingAverage(3);
+  float currentWatts = meter.powerReading.getMovingMax(3);
   float maxUsedWatts = meter.powerReading.getMovingMax(5);
 
   // Calculate worst-case power consumption based on the individual appliances

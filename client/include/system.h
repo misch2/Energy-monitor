@@ -18,6 +18,7 @@ class SystemLayer {
   String resetReasonAsString();
   String wakeupReasonAsString();
   void logResetReason();
+  bool resetReasonWasFaultySoftware();
 };
 
 #endif  // SYSTEM_H

@@ -74,6 +74,11 @@ String SystemLayer::wakeupReasonAsString() {
   }
 }
 
+bool SystemLayer::resetReasonWasFaultySoftware() {
+  esp_reset_reason_t reset_reason = esp_reset_reason();
+  return reset_reason == ESP_RST_PANIC || reset_reason == ESP_RST_INT_WDT || reset_reason == ESP_RST_TASK_WDT || reset_reason == ESP_RST_WDT;
+}
+
 void SystemLayer::logResetReason() {
   logger.debug("Reset reason: %s, wakeup reason: %s", resetReasonAsString(), wakeupReasonAsString());
 }
