@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
+#include <Timemark.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
 
@@ -19,6 +20,7 @@
 // Include modular headers
 #include "appliance.h"
 #include "backlight.h"
+#include "demo_mode.h"
 #include "display.h"
 #include "homeassistant.h"
 #include "led.h"
@@ -50,8 +52,7 @@ ElectricityMeter mainMeter;
 
 JsonDocument jsonConfig;
 String mqttTopicMainElectricityMeterPower = "";
-bool demoMode = false;
-Timemark demoModeTimer(10 * SECONDS_TO_MILLIS);
+DemoMode demo(logger, appliances, mainMeter);
 
 Timemark safeModeDelayTimer(30 * SECONDS_TO_MILLIS);
 
@@ -148,7 +149,7 @@ void parseJsonConfig(String payloadString) {
   // serializeJsonPretty(jsonConfig, tmp);
   // logger.debug(tmp.c_str());
 
-  demoMode = jsonConfig["settings"]["demo_mode"] | false;
+  demo.setActive(jsonConfig["settings"]["demo_mode"] | false);
 
   if (jsonConfig["settings"]["colors"].is<JsonObject>()) {
     parseUIColors(jsonConfig["settings"]["colors"]);
@@ -194,7 +195,7 @@ void parseJsonConfig(String payloadString) {
 }
 
 void handleMainElectricityMeterUpdate(String payloadString) {
-  if (demoMode) {
+  if (demo.isActive()) {
     // in demo mode, ignore real power meter updates
     return;
   }
@@ -202,7 +203,7 @@ void handleMainElectricityMeterUpdate(String payloadString) {
 }
 
 void handleIndividualPowerMeterUpdate(Appliance& appliance, String payloadString) {
-  if (demoMode) {
+  if (demo.isActive()) {
     // in demo mode, ignore real power meter updates
     return;
   }
@@ -245,39 +246,6 @@ void MQTTcallback(char* topic, byte* payload, unsigned int length) {
     }
     if (!found) {
       logger.debug("Unknown topic [%s]", topicString.c_str());
-    }
-  }
-}
-
-void handleDemoMode() {
-  // in demo mode, periodically update power readings with random values
-
-  if (!(demoMode && demoModeTimer.expired())) {
-    return;
-  }
-
-  logger.debug("Demo mode: updating power readings with random values");
-
-  float mainMeterPower = random(0, (int)mainMeter.getMaxAllowedWatts());
-  mainMeter.powerReading.update(mainMeterPower);
-
-  float totalAppliancePower = 0;
-  for (int i = 0; i < appliances.size(); i++) {
-    Appliance& appliance = appliances[i];
-    if (appliance.hasIndividualPowerMeter) {
-      float power = random(1, (int)appliance.maxPower);
-
-      if (random(0, 10) <= 2) {  // set to zero in 20% of cases
-        power = 0;
-      }
-
-      totalAppliancePower += power;
-      if (totalAppliancePower < mainMeterPower) {
-        // only set appliance power if total doesn't exceed main meter power
-        appliance.powerReading.update(power);
-      } else {
-        appliance.powerReading.update(0);
-      }
     }
   }
 }
@@ -352,9 +320,7 @@ void setup() {
   // }
 
   display.setLoadingScreenText("Initialization done");
-
   displayRecalculate.start();
-  demoModeTimer.start();
 
   logger.debug("Setup done, version %s", VERSION);
 }
@@ -374,8 +340,7 @@ void loop() {
     }
   }
 
-  handleDemoMode();
-
+  demo.loop();
   display.loop();
 
   homeassistant.publish_uptime_if_needed(false);
