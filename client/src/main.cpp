@@ -56,48 +56,6 @@ DemoMode demo(logger, appliances, mainMeter);
 
 Timemark safeModeDelayTimer(30 * SECONDS_TO_MILLIS);
 
-void test1() {
-  logger.debug("here 1");
-  lv_disp_load_scr(ui_OKScreen);
-  display.loop();
-  // logger.debug("a");
-  delay(2 * SECONDS_TO_MILLIS);
-
-  logger.debug("here 2");
-  lv_disp_load_scr(ui_WarningScreen);
-  display.loop();
-  lv_timer_handler();
-  delay(2 * SECONDS_TO_MILLIS);
-
-  logger.debug("here 3");
-  display.setLoadingScreenText("Random text");
-  delay(2 * SECONDS_TO_MILLIS);
-
-  logger.debug("here 4");
-  display.setLoadingScreenText("Foobar");
-  delay(2 * SECONDS_TO_MILLIS);
-
-  logger.debug("end");
-}
-
-void test2() {
-  logger.debug("initDisplay");
-  display.init();
-  logger.debug("ui_init");
-  ui_init();
-  logger.debug("initDisplay done, entering infinite loop");
-  for (int i = 0; i < 10000; i++) {
-    logger.debug("in the loop, i=%d", i);
-    lv_disp_load_scr(ui_OKScreen);
-    lv_label_set_text(ui_LabelRemainingWattsOK, i % 2 == 0 ? "even" : "odd");
-    display.loop();
-    delay(2 * SECONDS_TO_MILLIS);
-    lv_disp_load_scr(ui_WarningScreen);
-    display.loop();
-    delay(2 * SECONDS_TO_MILLIS);
-  }
-}
-
 uint32_t _htmlToHexColor(const char* htmlColor) {
   if (htmlColor == nullptr) {
     logger.debug("HTML color is null");
@@ -113,8 +71,6 @@ uint32_t _htmlToHexColor(const char* htmlColor) {
 
 void parseUIColors(JsonObject colorsJson) {
   logger.debug("Parsing UI colors from JSON config");
-
-  // copy all from json to uiColors
   uiColors.okState.panelTop.bg = _htmlToHexColor(colorsJson["okState"]["panelTop"]["bg"]);
   uiColors.okState.panelTop.border = _htmlToHexColor(colorsJson["okState"]["panelTop"]["border"]);
   uiColors.okState.labels.text = _htmlToHexColor(colorsJson["okState"]["labels"]["text"]);
@@ -161,8 +117,7 @@ void parseJsonConfig(String payloadString) {
   display.handleElectricityMeterConfigChange(mainMeter.getMaxAllowedWatts());
 
   mqttTopicMainElectricityMeterPower = (const char*)jsonConfig["topics"]["current_power"];
-  logger.debug("Subscribing to power meter topic [%s]", mqttTopicMainElectricityMeterPower.c_str());
-  bool ok = mqttClient.subscribe(mqttTopicMainElectricityMeterPower.c_str());
+  bool ok = mqttWrapper.subscribeToTopic(mqttTopicMainElectricityMeterPower);
   if (!ok) {
     display.setLoadingScreenText("MQTT subscription failed!");
   }
@@ -179,8 +134,7 @@ void parseJsonConfig(String payloadString) {
 
     if (appliance.jsonTopicName != "") {
       String topic = appliance.jsonTopicName;
-      logger.debug("    Subscribing to individual power meter topic [%s]", topic.c_str());
-      bool ok = mqttClient.subscribe(topic.c_str());
+      bool ok = mqttWrapper.subscribeToTopic(topic);
       if (!ok) {
         display.setLoadingScreenText("MQTT subscription failed!");
       }

@@ -7,6 +7,8 @@
 #include <Timemark.h>
 #include <WiFi.h>
 
+#include <vector>
+
 #include "logger.h"
 #include "power.h"
 #include "secrets.h"
@@ -15,18 +17,19 @@ class MQTTClientWrapper {
  private:
   PubSubClient& client;
   Logger& logger;
-
   Timemark mqttTimeout;
-  std::function<void(char*, byte*, unsigned int)> callbackFunc;
 
  public:
   MQTTClientWrapper(PubSubClient& client, Logger& logger);
   void init(std::function<void(char*, byte*, unsigned int)> callbackFunc);
-  void reconnect();
   void loop();
+  void reconnect();
+  bool subscribeToTopic(const String& topic);
 
  private:
+  std::function<void(char*, byte*, unsigned int)> callbackFunc;
   void callbackWrapper(char* topic, byte* payload, unsigned int length);
+  std::vector<String> subscribedTopics;
 };
 
 #endif  // MQTT_H

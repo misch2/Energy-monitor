@@ -18,14 +18,14 @@ void MQTTClientWrapper::reconnect() {
     return;
   }
 
+  subscribedTopics.clear();
   while (!client.connected()) {
     logger.debug("Attempting MQTT connection...");
     // Attempt to connect
     if (client.connect("EnergyMonitor/1.0", MQTT_USER, MQTT_PASSWORD)) {
       logger.debug(" - connected");
       logger.debug("Subscribing to configuration topic [%s]", MQTT_CONFIGURATION_TOPIC);
-      bool ok = client.subscribe(MQTT_CONFIGURATION_TOPIC);
-      // logger.debug(ok ? "Subscribed" : "Subscription failed");
+      bool ok = subscribeToTopic(MQTT_CONFIGURATION_TOPIC);
     } else {
       logger.debug(" - failed, rc=%d", client.state());
       logger.debug(" - trying again in 5 seconds");
@@ -60,4 +60,23 @@ void MQTTClientWrapper::callbackWrapper(char* topic, byte* payload, unsigned int
     callbackFunc(topic, payload, length);
   }
   mqttTimeout.start();  // reset the timeout
+}
+
+bool MQTTClientWrapper::subscribeToTopic(const String& topic) {
+  // check if already subscribed
+  for (const String& t : subscribedTopics) {
+    if (t == topic) {
+      logger.debug("Already subscribed to topic [%s]", topic.c_str());
+      return true;
+    }
+  }
+
+  boolean ok = client.subscribe(topic.c_str());
+  if (ok) {
+    subscribedTopics.push_back(topic);
+    logger.debug("Subscribed to topic [%s]", topic.c_str());
+  } else {
+    logger.debug("Failed to subscribe to topic [%s]", topic.c_str());
+  }
+  return ok;
 }
